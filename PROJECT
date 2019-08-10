@@ -1,0 +1,3 @@
+version: "2"
+domain: step.sm
+repo: github.com/smallstep/step-issuer
