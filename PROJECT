@@ -1,3 +1,7 @@
 version: "2"
 domain: step.sm
 repo: github.com/smallstep/step-issuer
+resources:
+- group: certmanager
+  version: v1beta1
+  kind: StepIssuer
