@@ -9,5 +9,4 @@ spec:
   isCA: false
   issuerRef:
     group: certmanager.step.sm
-    kind: LocalCA
     name: step-issuer
