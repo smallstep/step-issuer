@@ -1,0 +1,26 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: backend-smallstep-com
+  namespace: default
+spec:
+  # The secret name to store the signed certificate
+  secretName: backend-smallstep-com-tls
+  # Common Name
+  commonName: backend.smallstep.com
+  # DNS SAN
+  dnsNames:
+    - localhost
+    - backend.smallstep.com
+  # IP Address SAN
+  ipAddresses:
+    - "127.0.0.1"
+  # Duration of the certificate
+  duration: 24h
+  # Renew 8 hours before the certificate expiration
+  renewBefore: 8h
+  # The reference to the step issuer
+  issuerRef:
+    group: certmanager.step.sm
+    kind: CertificateRequest
+    name: step-issuer
