@@ -41,6 +41,7 @@ type StepIssuerReconciler struct {
 
 // +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepissuers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepissuers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile will read and validate the StepIssuer resources, it will set the
 // status condition ready to true if everything is right.
