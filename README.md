@@ -13,7 +13,7 @@ version supporting CertificateRequest issuers, cert-manager v0.9.0 or higher.
 
 ### Installing step certificates
 
-Step Issues uses [step certificates](https://github.com/smallstep/certificates)
+Step Issuer uses [step certificates](https://github.com/smallstep/certificates)
 as the Certificate Authority or CA in charge of signing the CertificateRequest
 resources. To install `step certificates` the easiest way is to use helm:
 
