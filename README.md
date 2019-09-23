@@ -379,6 +379,6 @@ type: kubernetes.io/tls
 
 Note that this feature is currently experimental in cert-manager and needs to be
 enabled using the flag `--feature-gates=CertificateRequestControllers=true`.
-Cert-manager v0.10.0 will probably include this feature enabled by default.
+Cert-manager v0.11.0 will probably include this feature enabled by default.
 
 **Happy signing**
