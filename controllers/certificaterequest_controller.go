@@ -22,7 +22,8 @@ import (
 
 	"github.com/go-logr/logr"
 	apiutil "github.com/jetstack/cert-manager/pkg/api/util"
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/provisioners"
 	core "k8s.io/api/core/v1"
@@ -84,7 +85,7 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	}
 	if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
 		log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
-		r.setStatus(ctx, cr, cmapi.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepIssuer resource %s: %v", issNamespaceName, err)
+		r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepIssuer resource %s: %v", issNamespaceName, err)
 		return ctrl.Result{}, err
 	}
 
@@ -92,7 +93,7 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if !stepIssuerHasCondition(iss, api.StepIssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
 		err := fmt.Errorf("resource %s is not ready", issNamespaceName)
 		log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
-		r.setStatus(ctx, cr, cmapi.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepIssuer resource %s is not Ready", issNamespaceName)
+		r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepIssuer resource %s is not Ready", issNamespaceName)
 		return ctrl.Result{}, err
 	}
 
@@ -101,7 +102,7 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if !ok {
 		err := fmt.Errorf("provisioner %s not found", issNamespaceName)
 		log.Error(err, "failed to provisioner for StepIssuer resource")
-		r.setStatus(ctx, cr, cmapi.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepIssuer resource %s", issNamespaceName)
+		r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepIssuer resource %s", issNamespaceName)
 		return ctrl.Result{}, err
 	}
 
@@ -109,12 +110,12 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	signedPEM, trustedCAs, err := provisioner.Sign(ctx, cr)
 	if err != nil {
 		log.Error(err, "failed to sign certificate request")
-		return ctrl.Result{}, r.setStatus(ctx, cr, cmapi.ConditionFalse, cmapi.CertificateRequestReasonFailed, "Failed to sign certificate request: %v", err)
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "Failed to sign certificate request: %v", err)
 	}
 	cr.Status.Certificate = signedPEM
 	cr.Status.CA = trustedCAs
 
-	return ctrl.Result{}, r.setStatus(ctx, cr, cmapi.ConditionTrue, cmapi.CertificateRequestReasonIssued, "Certificate issued")
+	return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionTrue, cmapi.CertificateRequestReasonIssued, "Certificate issued")
 }
 
 // SetupWithManager initializes the CertificateRequest controller into the
@@ -140,13 +141,13 @@ func stepIssuerHasCondition(iss api.StepIssuer, c api.StepIssuerCondition) bool 
 	return false
 }
 
-func (r *CertificateRequestReconciler) setStatus(ctx context.Context, cr *cmapi.CertificateRequest, status cmapi.ConditionStatus, reason, message string, args ...interface{}) error {
+func (r *CertificateRequestReconciler) setStatus(ctx context.Context, cr *cmapi.CertificateRequest, status cmmeta.ConditionStatus, reason, message string, args ...interface{}) error {
 	completeMessage := fmt.Sprintf(message, args...)
 	apiutil.SetCertificateRequestCondition(cr, cmapi.CertificateRequestConditionReady, status, reason, completeMessage)
 
 	// Fire an Event to additionally inform users of the change
 	eventType := core.EventTypeNormal
-	if status == cmapi.ConditionFalse {
+	if status == cmmeta.ConditionFalse {
 		eventType = core.EventTypeWarning
 	}
 	r.Recorder.Event(cr, eventType, reason, completeMessage)
