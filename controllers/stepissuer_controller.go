@@ -58,7 +58,7 @@ func (r *StepIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	statusReconciler := newStepStatusReconciler(r, iss, log)
 	if err := validateStepIssuerSpec(iss.Spec); err != nil {
 		log.Error(err, "failed to validate StepIssuer resource")
-		statusReconciler.Update(ctx, api.ConditionFalse, "Validation", "Failed to validate resource: %v", err)
+		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Validation", "Failed to validate resource: %v", err)
 		return ctrl.Result{}, err
 	}
 
@@ -71,9 +71,9 @@ func (r *StepIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	if err := r.Client.Get(ctx, secretNamespaceName, &secret); err != nil {
 		log.Error(err, "failed to retrieve StepIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
 		if apierrors.IsNotFound(err) {
-			statusReconciler.Update(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
+			statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
 		} else {
-			statusReconciler.Update(ctx, api.ConditionFalse, "Error", "Failed to retrieve provisioner secret: %v", err)
+			statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Error", "Failed to retrieve provisioner secret: %v", err)
 		}
 		return ctrl.Result{}, err
 	}
@@ -81,7 +81,7 @@ func (r *StepIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	if !ok {
 		err := fmt.Errorf("secret %s does not contain key %s", secret.Name, iss.Spec.Provisioner.PasswordRef.Key)
 		log.Error(err, "failed to retrieve StepIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
-		statusReconciler.Update(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
+		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
 		return ctrl.Result{}, err
 	}
 
@@ -89,7 +89,7 @@ func (r *StepIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 	p, err := provisioners.New(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")
-		statusReconciler.Update(ctx, api.ConditionFalse, "Error", "failed initialize provisioner")
+		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Error", "failed initialize provisioner")
 		return ctrl.Result{}, err
 	}
 	provisioners.Store(req.NamespacedName, p)

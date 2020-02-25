@@ -35,7 +35,13 @@ func (r *stepStatusReconciler) Update(ctx context.Context, status api.ConditionS
 	}
 	r.Recorder.Event(r.issuer, eventType, reason, completeMessage)
 
-	return r.Client.Update(ctx, r.issuer)
+	return r.Client.Status().Update(ctx, r.issuer)
+}
+
+func (r *stepStatusReconciler) UpdateNoError(ctx context.Context, status api.ConditionStatus, reason, message string, args ...interface{}) {
+	if err := r.Update(ctx, status, reason, message, args...); err != nil {
+		r.logger.Error(err, "failed to update", "status", status, "reason", reason)
+	}
 }
 
 // setCondition will set a 'condition' on the given api.StepIssuer resource.
