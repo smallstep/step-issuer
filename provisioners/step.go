@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	capi "github.com/smallstep/certificates/api"
 	"github.com/smallstep/certificates/ca"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
