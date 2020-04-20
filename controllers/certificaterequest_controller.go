@@ -91,7 +91,7 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	}
 	if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
 		log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
-		r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepIssuer resource %s: %v", issNamespaceName, err)
+		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepIssuer resource %s: %v", issNamespaceName, err)
 		return ctrl.Result{}, err
 	}
 
@@ -99,7 +99,7 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if !stepIssuerHasCondition(iss, api.StepIssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
 		err := fmt.Errorf("resource %s is not ready", issNamespaceName)
 		log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
-		r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepIssuer resource %s is not Ready", issNamespaceName)
+		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepIssuer resource %s is not Ready", issNamespaceName)
 		return ctrl.Result{}, err
 	}
 
@@ -108,7 +108,7 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if !ok {
 		err := fmt.Errorf("provisioner %s not found", issNamespaceName)
 		log.Error(err, "failed to provisioner for StepIssuer resource")
-		r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepIssuer resource %s", issNamespaceName)
+		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepIssuer resource %s", issNamespaceName)
 		return ctrl.Result{}, err
 	}
 
