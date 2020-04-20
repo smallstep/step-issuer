@@ -59,6 +59,12 @@ docker-build: test
 docker-push:
 	docker push ${IMG}
 
+# Make sure to run a local registry
+# docker run -d -p 5000:5000 --restart=always --name registry registry:2
+docker-dev:
+	docker tag ${IMG} localhost:5000/${IMG}
+	docker push localhost:5000/${IMG}
+
 # find or download controller-gen
 # download controller-gen if necessary
 controller-gen:
