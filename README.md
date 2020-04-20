@@ -20,7 +20,12 @@ resources. To install `step certificates` the easiest way is to use helm:
 ```sh
 helm repo add smallstep  https://smallstep.github.io/helm-charts
 helm repo update
-helm install --name step-certificates smallstep/step-certificates
+helm install step-certificates smallstep/step-certificates
+```
+
+With helm 2 the install command should be like:
+```sh
+helm install -name step-certificates smallstep/step-certificates
 ```
 
 Please refer to [step certificates](https://github.com/smallstep/certificates)
@@ -177,7 +182,7 @@ stepissuer.certmanager.step.sm/step-issuer created
 Moments later you should be able to see the `status` property in the resource:
 
 ```sh
-kubectl get stepissuers.certmanager.step.sm step-issuer -o yaml
+$ kubectl get stepissuers.certmanager.step.sm step-issuer -o yaml
 apiVersion: certmanager.step.sm/v1beta1
 kind: StepIssuer
 ...
