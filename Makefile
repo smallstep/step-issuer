@@ -201,7 +201,7 @@ docker-push-tag-latest:
 # Rely on DOCKER_USERNAME and DOCKER_PASSWORD being set inside the CI or
 # equivalent environment
 docker-login:
-	# $Q docker login -u="$(DOCKER_USERNAME)" -p="$(DOCKER_PASSWORD)"
+	$Q docker login -u="$(DOCKER_USERNAME)" -p="$(DOCKER_PASSWORD)"
 
 .PHONY: docker-login docker-tag docker-push-tag docker-push-tag-latest
 
