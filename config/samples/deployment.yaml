@@ -184,6 +184,13 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
   - secrets
   verbs:
   - get
@@ -337,7 +344,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: smallstep/step-issuer:latest
+        image: smallstep/step-issuer:0.2.0
         name: manager
         resources:
           limits:
