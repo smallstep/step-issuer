@@ -9,7 +9,7 @@ sign the certificate requests.
 
 In this guide, we assume that you have a [Kubernetes](https://kubernetes.io/)
 environment with a [cert-manager](https://github.com/jetstack/cert-manager)
-version supporting CertificateRequest issuers, cert-manager v0.9.0 or higher.
+version supporting CertificateRequest issuers, cert-manager v0.11.0 or higher.
 
 ### Installing step certificates
 
@@ -20,7 +20,12 @@ resources. To install `step certificates` the easiest way is to use helm:
 ```sh
 helm repo add smallstep  https://smallstep.github.io/helm-charts
 helm repo update
-helm install --name step-certificates smallstep/step-certificates
+helm install step-certificates smallstep/step-certificates
+```
+
+With helm 2 the install command should be like:
+```sh
+helm install -name step-certificates smallstep/step-certificates
 ```
 
 Please refer to [step certificates](https://github.com/smallstep/certificates)
@@ -177,7 +182,7 @@ stepissuer.certmanager.step.sm/step-issuer created
 Moments later you should be able to see the `status` property in the resource:
 
 ```sh
-kubectl get stepissuers.certmanager.step.sm step-issuer -o yaml
+$ kubectl get stepissuers.certmanager.step.sm step-issuer -o yaml
 apiVersion: certmanager.step.sm/v1beta1
 kind: StepIssuer
 ...
@@ -242,7 +247,7 @@ LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQkVEQ0J0d0lCQURBaE1SOHdIUVlE
 And put everything together:
 
 ```yaml
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: CertificateRequest
 metadata:
   name: internal-smallstep-com
@@ -266,15 +271,15 @@ We apply it using kubectl:
 
 ```sh
 $ kubectl apply -f config/samples/certificaterequest.yaml
-certificaterequest.certmanager.k8s.io/internal-smallstep-com configured
+certificaterequest.cert-manager.io/internal-smallstep-com configured
 ```
 
 And moments later the bundled signed certificate with the intermediate as well
 as the root certificate will be available in the resource:
 
 ```sh
-$ kubectl get certificaterequests.certmanager.k8s.io internal-smallstep-com -o yaml
-apiVersion: certmanager.k8s.io/v1alpha1
+$ kubectl get certificaterequests.cert-manager.io internal-smallstep-com -o yaml
+apiVersion: cert-manager.io/v1alpha2
 kind: CertificateRequest
 ...
 status:
@@ -301,7 +306,7 @@ controllers like Step Issuer.
 The YAML for a Certificate resource looks like:
 
 ```yaml
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: backend-smallstep-com
@@ -333,14 +338,14 @@ To apply the certificate resource you just need to run:
 
 ```sh
 $ kubectl apply -f config/samples/certificate.yaml
-certificate.certmanager.k8s.io/backend-smallstep-com created
+certificates.cert-manager.io/backend-smallstep-com created
 ```
 
 Moments later a CertificateRequest will be automatically created by
 cert-manager:
 
 ```sh
-$ kubectl get certificaterequests.certmanager.k8s.io
+$ kubectl get certificates.cert-manager.io
 NAME                               READY   AGE
 backend-smallstep-com-2152809657   True    22s
 internal-smallstep-com             True    1h
@@ -362,12 +367,13 @@ data:
 kind: Secret
 metadata:
   annotations:
-    certmanager.k8s.io/alt-names: backend.smallstep.com,localhost
-    certmanager.k8s.io/certificate-name: backend-smallstep-com
-    certmanager.k8s.io/common-name: backend.smallstep.com
-    certmanager.k8s.io/ip-sans: 127.0.0.1
-    certmanager.k8s.io/issuer-kind: CertificateRequest
-    certmanager.k8s.io/issuer-name: step-issuer
+    cert-manager.io/alt-names: localhost,backend.smallstep.com
+    cert-manager.io/certificate-name: backend-smallstep-com
+    cert-manager.io/common-name: backend.smallstep.com
+    cert-manager.io/ip-sans: 127.0.0.1
+    cert-manager.io/issuer-kind: CertificateRequest
+    cert-manager.io/issuer-name: step-issuer
+    cert-manager.io/uri-sans: ""
   creationTimestamp: "2019-08-14T01:02:03Z"
   name: backend-smallstep-com-tls
   namespace: default
@@ -376,9 +382,5 @@ metadata:
   uid: 751e621c-426c-4493-b253-dc817fd6a64f
 type: kubernetes.io/tls
 ```
-
-Note that this feature is currently experimental in cert-manager and needs to be
-enabled using the flag `--feature-gates=CertificateRequestControllers=true`.
-Cert-manager v0.11.0 will probably include this feature enabled by default.
 
 **Happy signing**

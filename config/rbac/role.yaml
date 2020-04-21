@@ -9,13 +9,20 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
   - secrets
   verbs:
   - get
   - list
   - watch
 - apiGroups:
-  - certmanager.k8s.io
+  - cert-manager.io
   resources:
   - certificaterequests
   verbs:
@@ -24,7 +31,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - certmanager.k8s.io
+  - cert-manager.io
   resources:
   - certificaterequests/status
   verbs:

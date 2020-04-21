@@ -19,7 +19,7 @@ import (
 	"flag"
 	"os"
 
-	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	stepv1beta1 "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
