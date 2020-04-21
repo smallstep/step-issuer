@@ -167,8 +167,6 @@ DOCKER_BUILD=$Q docker build -t $(IMG) -f $(2) --build-arg BINPATH=$(DOCKER_OUTP
 
 docker: docker-make Dockerfile
 	$(call DOCKER_BUILD,manager,Dockerfile)
-	@echo "updating kustomize image patch file for manager resource"
-	$Q sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
 
 docker-make:
 	$Q mkdir -p $(DOCKER_OUTPUT)
