@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-logr/logr"
 	apiutil "github.com/jetstack/cert-manager/pkg/api/util"
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/provisioners"
@@ -39,6 +39,8 @@ type CertificateRequestReconciler struct {
 	client.Client
 	Log      logr.Logger
 	Recorder record.EventRecorder
+
+	CheckApprovedCondition bool
 }
 
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificaterequests,verbs=get;list;watch;update
@@ -47,8 +49,7 @@ type CertificateRequestReconciler struct {
 // Reconcile will read and validate a StepIssuer resource associated to the
 // CertificateRequest resource, and it will sign the CertificateRequest with the
 // provisioner in the StepIssuer.
-func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("certificaterequest", req.NamespacedName)
 
 	// Fetch the CertificateRequest resource being reconciled.
@@ -68,6 +69,14 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if cr.Spec.IssuerRef.Group != "" && cr.Spec.IssuerRef.Group != api.GroupVersion.Group {
 		log.V(4).Info("resource does not specify an issuerRef group name that we are responsible for", "group", cr.Spec.IssuerRef.Group)
 		return ctrl.Result{}, nil
+	}
+
+	if r.CheckApprovedCondition {
+		// If CertificateRequest has not been approved or is denied, exit early.
+		if !apiutil.CertificateRequestIsApproved(cr) || apiutil.CertificateRequestIsDenied(cr) {
+			log.V(4).Info("certificate request has not been approved")
+			return ctrl.Result{}, nil
+		}
 	}
 
 	// If the certificate data is already set then we skip this request as it

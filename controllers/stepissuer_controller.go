@@ -46,8 +46,7 @@ type StepIssuerReconciler struct {
 
 // Reconcile will read and validate the StepIssuer resources, it will set the
 // status condition ready to true if everything is right.
-func (r *StepIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("stepissuer", req.NamespacedName)
 
 	iss := new(api.StepIssuer)

@@ -19,7 +19,7 @@ import (
 	"flag"
 	"os"
 
-	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	stepv1beta1 "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,12 +46,21 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var disableApprovedCheck bool
+
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
+	flag.BoolVar(&disableApprovedCheck, "disable-approval-check", false,
+		"Disables waiting for CertificateRequests to have an approved condition before signing.")
+
+	// Options for configuring logging
+	opts := zap.Options{}
+	opts.BindFlags(flag.CommandLine)
+
 	flag.Parse()
 
-	ctrl.SetLogger(zap.Logger(true))
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
@@ -74,9 +83,10 @@ func main() {
 	}
 
 	if err = (&controllers.CertificateRequestReconciler{
-		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("controllers").WithName("CertificateRequest"),
-		Recorder: mgr.GetEventRecorderFor("certificaterequests-controller"),
+		Client:                 mgr.GetClient(),
+		Log:                    ctrl.Log.WithName("controllers").WithName("CertificateRequest"),
+		Recorder:               mgr.GetEventRecorderFor("certificaterequests-controller"),
+		CheckApprovedCondition: !disableApprovedCheck,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CertificateRequest")
 		os.Exit(1)
