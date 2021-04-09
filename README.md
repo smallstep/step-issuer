@@ -146,6 +146,14 @@ NAME                                                       DESIRED   CURRENT   R
 replicaset.apps/step-issuer-controller-manager-9d74f5bff   1         1         1       1m
 ```
 
+#### Disable Approval Check
+
+The Step Issuer will wait for CertificateRequests to have an [approved condition
+set](https://cert-manager.io/docs/concepts/certificaterequest/#approval) before
+signing. If using an older version of cert-manager (pre v1.3), you can disable
+this check by supplying the command line flag `-disable-approval-check` to the
+Issuer Deployment.
+
 ### Adding a StepIssuer
 
 Now, we're going to use all the configuration values that we got after
