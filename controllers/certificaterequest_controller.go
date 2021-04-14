@@ -28,8 +28,10 @@ import (
 	"github.com/smallstep/step-issuer/provisioners"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/utils/clock"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -40,6 +42,7 @@ type CertificateRequestReconciler struct {
 	Log      logr.Logger
 	Recorder record.EventRecorder
 
+	Clock                  clock.Clock
 	CheckApprovedCondition bool
 }
 
@@ -71,10 +74,24 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, nil
 	}
 
+	// If CertificateRequest has been denied, mark the CertificateRequest as
+	// Ready=Denied and set FailureTime if not already.
+	if apiutil.CertificateRequestIsDenied(cr) {
+		log.V(4).Info("CertificateRequest has been denied yet. Marking as failed.")
+
+		if cr.Status.FailureTime == nil {
+			nowTime := metav1.NewTime(r.Clock.Now())
+			cr.Status.FailureTime = &nowTime
+		}
+
+		message := "The CertificateRequest was denied by an approval controller"
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonDenied, message)
+	}
+
 	if r.CheckApprovedCondition {
-		// If CertificateRequest has not been approved or is denied, exit early.
-		if !apiutil.CertificateRequestIsApproved(cr) || apiutil.CertificateRequestIsDenied(cr) {
-			log.V(4).Info("certificate request has not been approved")
+		// If CertificateRequest has not been approved, exit early.
+		if !apiutil.CertificateRequestIsApproved(cr) {
+			log.V(4).Info("certificate request has not been approved yet, ignoring")
 			return ctrl.Result{}, nil
 		}
 	}

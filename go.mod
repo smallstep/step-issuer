@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/go-logr/logr v0.3.0
-	github.com/jetstack/cert-manager v1.3.0
+	github.com/jetstack/cert-manager v1.3.1
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/smallstep/certificates v0.14.2
