@@ -46,26 +46,32 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var leaderElectionID string
 	var disableApprovedCheck bool
-
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
-		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
-	flag.BoolVar(&disableApprovedCheck, "disable-approval-check", false,
-		"Disables waiting for CertificateRequests to have an approved condition before signing.")
 
 	// Options for configuring logging
 	opts := zap.Options{}
 	opts.BindFlags(flag.CommandLine)
 
+	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
+		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&leaderElectionID, "leader-election-id", "",
+		"The name of the resource that leader election will use for holding the leader lock.")
+	flag.BoolVar(&disableApprovedCheck, "disable-approval-check", false,
+		"Disables waiting for CertificateRequests to have an approved condition before signing.")
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	if enableLeaderElection && leaderElectionID == "" {
+		leaderElectionID = "step-issuer-operator-lock"
+	}
 
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		LeaderElection:     enableLeaderElection,
+		LeaderElectionID:   leaderElectionID,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
