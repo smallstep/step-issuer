@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	capi "github.com/smallstep/certificates/api"
 	"github.com/smallstep/certificates/ca"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
@@ -112,7 +112,7 @@ func (s *Step) Sign(ctx context.Context, cr *certmanager.CertificateRequest) ([]
 	}
 
 	// decode and check certificate request
-	csr, err := decodeCSR(cr.Spec.CSRPEM)
+	csr, err := decodeCSR(cr.Spec.Request)
 	if err != nil {
 		return nil, nil, err
 	}

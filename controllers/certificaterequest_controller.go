@@ -22,14 +22,16 @@ import (
 
 	"github.com/go-logr/logr"
 	apiutil "github.com/jetstack/cert-manager/pkg/api/util"
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/provisioners"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/utils/clock"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -39,6 +41,9 @@ type CertificateRequestReconciler struct {
 	client.Client
 	Log      logr.Logger
 	Recorder record.EventRecorder
+
+	Clock                  clock.Clock
+	CheckApprovedCondition bool
 }
 
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificaterequests,verbs=get;list;watch;update
@@ -47,8 +52,7 @@ type CertificateRequestReconciler struct {
 // Reconcile will read and validate a StepIssuer resource associated to the
 // CertificateRequest resource, and it will sign the CertificateRequest with the
 // provisioner in the StepIssuer.
-func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("certificaterequest", req.NamespacedName)
 
 	// Fetch the CertificateRequest resource being reconciled.
@@ -68,6 +72,28 @@ func (r *CertificateRequestReconciler) Reconcile(req ctrl.Request) (ctrl.Result,
 	if cr.Spec.IssuerRef.Group != "" && cr.Spec.IssuerRef.Group != api.GroupVersion.Group {
 		log.V(4).Info("resource does not specify an issuerRef group name that we are responsible for", "group", cr.Spec.IssuerRef.Group)
 		return ctrl.Result{}, nil
+	}
+
+	// If CertificateRequest has been denied, mark the CertificateRequest as
+	// Ready=Denied and set FailureTime if not already.
+	if apiutil.CertificateRequestIsDenied(cr) {
+		log.V(4).Info("CertificateRequest has been denied yet. Marking as failed.")
+
+		if cr.Status.FailureTime == nil {
+			nowTime := metav1.NewTime(r.Clock.Now())
+			cr.Status.FailureTime = &nowTime
+		}
+
+		message := "The CertificateRequest was denied by an approval controller"
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonDenied, message)
+	}
+
+	if r.CheckApprovedCondition {
+		// If CertificateRequest has not been approved, exit early.
+		if !apiutil.CertificateRequestIsApproved(cr) {
+			log.V(4).Info("certificate request has not been approved yet, ignoring")
+			return ctrl.Result{}, nil
+		}
 	}
 
 	// If the certificate data is already set then we skip this request as it

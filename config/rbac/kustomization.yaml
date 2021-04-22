@@ -9,3 +9,7 @@ resources:
 - auth_proxy_service.yaml
 - auth_proxy_role.yaml
 - auth_proxy_role_binding.yaml
+# Comment the following 2 lines if you don't wish for the internal cert-manager
+# approver to approve all certmanager.step.sm CertificateRequests by default.
+- cert_manager_controller_approver_clusterrole.yaml
+- cert_manager_controller_approver_clusterrolebinding.yaml
