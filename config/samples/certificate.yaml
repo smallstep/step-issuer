@@ -1,4 +1,4 @@
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: backend-smallstep-com
@@ -22,5 +22,5 @@ spec:
   # The reference to the step issuer
   issuerRef:
     group: certmanager.step.sm
-    kind: CertificateRequest
+    kind: StepIssuer
     name: step-issuer

@@ -255,14 +255,14 @@ LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQkVEQ0J0d0lCQURBaE1SOHdIUVlE
 And put everything together:
 
 ```yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: CertificateRequest
 metadata:
   name: internal-smallstep-com
   namespace: default
 spec:
   # The base64 encoded version of the certificate request in PEM format.
-  csr: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQkVEQ0J0d0lCQURBaE1SOHdIUVlEVlFRREV4WnBiblJsY201aGJDNXpiV0ZzYkhOMFpYQXVZMjl0TUZrdwpFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVdZYU9lcGhGZmh2ZlN5djdob1BPcEtBOEl3U0JCZlRWCnhMVzNST1lHUDFNNUR1RkU4TkZTWUlDRTJIdzd4ZFA5b2FTeSt2NURvdTVLWk5yNTNEMi80S0EwTURJR0NTcUcKU0liM0RRRUpEakVsTUNNd0lRWURWUjBSQkJvd0dJSVdhVzUwWlhKdVlXd3VjMjFoYkd4emRHVndMbU52YlRBSwpCZ2dxaGtqT1BRUURBZ05JQURCRkFpQXFTRHJKMjltSzVRTTJXRUw1bXRXVnQ5Rlp0cEJXYVBXVVdRTnV2SEpsClpBSWhBUDk1T1BHa0NabkRpTHh5ZHdQaWVjdHVlK2M0SHBVd2RhYU40Sm1FMWZ5aAotLS0tLUVORCBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K
+  request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQkVEQ0J0d0lCQURBaE1SOHdIUVlEVlFRREV4WnBiblJsY201aGJDNXpiV0ZzYkhOMFpYQXVZMjl0TUZrdwpFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVdZYU9lcGhGZmh2ZlN5djdob1BPcEtBOEl3U0JCZlRWCnhMVzNST1lHUDFNNUR1RkU4TkZTWUlDRTJIdzd4ZFA5b2FTeSt2NURvdTVLWk5yNTNEMi80S0EwTURJR0NTcUcKU0liM0RRRUpEakVsTUNNd0lRWURWUjBSQkJvd0dJSVdhVzUwWlhKdVlXd3VjMjFoYkd4emRHVndMbU52YlRBSwpCZ2dxaGtqT1BRUURBZ05JQURCRkFpQXFTRHJKMjltSzVRTTJXRUw1bXRXVnQ5Rlp0cEJXYVBXVVdRTnV2SEpsClpBSWhBUDk1T1BHa0NabkRpTHh5ZHdQaWVjdHVlK2M0SHBVd2RhYU40Sm1FMWZ5aAotLS0tLUVORCBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K
   # The duration of the certificate
   duration: 24h
   # If the certificate will be a CA or not.
@@ -272,6 +272,7 @@ spec:
   # A reference to the issuer in charge of signing the CSR.
   issuerRef:
     group: certmanager.step.sm
+    kind: StepIssuer
     name: step-issuer
 ```
 
@@ -314,7 +315,7 @@ controllers like Step Issuer.
 The YAML for a Certificate resource looks like:
 
 ```yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: backend-smallstep-com
@@ -338,7 +339,7 @@ spec:
   # The reference to the step issuer
   issuerRef:
     group: certmanager.step.sm
-    kind: CertificateRequest
+    kind: StepIssuer
     name: step-issuer
 ```
 
