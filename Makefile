@@ -16,7 +16,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-all: build test lint
+all: build lint test
 
 .PHONY: all
 
@@ -26,7 +26,7 @@ all: build test lint
 
 bootstra%:
 	# Using a released version of golangci-lint to take into account custom replacements in their go.mod
-	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.23.8
+	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.39.0
 
 .PHONY: bootstra%
 
@@ -77,10 +77,7 @@ GOFLAGS := CGO_ENABLED=0
 build: $(PREFIX)bin/$(BINNAME)
 	@echo "Build Complete!"
 
-download:
-	$Q go mod download
-
-$(PREFIX)bin/$(BINNAME): download generate $(call rwildcard,*.go)
+$(PREFIX)bin/$(BINNAME): generate $(call rwildcard,*.go)
 	$Q mkdir -p $(@D)
 	$Q $(GOOS_OVERRIDE) $(GOFLAGS) go build -v -o $(PREFIX)bin/$(BINNAME) $(LDFLAGS) $(PKG)
 
@@ -96,7 +93,7 @@ generate: controller-gen
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	$Q go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5
+	$Q go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)

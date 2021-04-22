@@ -117,7 +117,7 @@ running `make deploy`, but we're going to run the individual steps here:
 First we install the CRDs:
 
 ```sh
-kubectl apply -f config/crd/bases
+kubectl apply -f config/crd/bases/certmanager.step.sm_stepissuers.yaml
 ```
 
 Then we install the controller:
