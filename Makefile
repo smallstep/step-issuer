@@ -129,7 +129,7 @@ vet:
 	$Q go vet ./...
 
 lint:
-	$Q LOG_LEVEL=error golangci-lint run
+	$Q LOG_LEVEL=error golangci-lint run --timeout 5m
 
 .PHONY: fmt vet lint
 
