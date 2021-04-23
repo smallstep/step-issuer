@@ -111,8 +111,19 @@ To recap, we got:
 
 ### Installing step issuer
 
-Finally, we need to install the step issuer. The easiest way to install it is
-running `make deploy`, but we're going to run the individual steps here:
+Finally, we need to install the step issuer. The easiest way to install it is to use helm:
+
+```sg
+helm repo add smallstep  https://smallstep.github.io/helm-charts
+helm repo update
+helm install step-issuer smallstep/step-issuer
+```
+
+Now just follow the helm notes to have an issuer configured and your first
+certificate.
+
+If you want to install it from the repo, you can just run `make deploy`. These
+are the individual steps for a manual installation:
 
 First we install the CRDs:
 
