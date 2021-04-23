@@ -344,7 +344,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: smallstep/step-issuer:0.2.0
+        image: smallstep/step-issuer:0.3.0
         name: manager
         resources:
           limits:
