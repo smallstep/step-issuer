@@ -1,0 +1,24 @@
+# permissions for end users to edit stepclusterissuers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: stepclusterissuer-editor-role
+rules:
+- apiGroups:
+  - certmanager.step.sm
+  resources:
+  - stepclusterissuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - certmanager.step.sm
+  resources:
+  - stepclusterissuers/status
+  verbs:
+  - get

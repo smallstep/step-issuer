@@ -1,0 +1,20 @@
+# permissions for end users to view stepclusterissuers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: stepclusterissuer-viewer-role
+rules:
+- apiGroups:
+  - certmanager.step.sm
+  resources:
+  - stepclusterissuers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certmanager.step.sm
+  resources:
+  - stepclusterissuers/status
+  verbs:
+  - get

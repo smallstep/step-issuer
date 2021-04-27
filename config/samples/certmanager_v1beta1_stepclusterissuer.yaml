@@ -1,0 +1,7 @@
+apiVersion: certmanager.step.sm/v1beta1
+kind: StepClusterIssuer
+metadata:
+  name: stepclusterissuer-sample
+spec:
+  # Add fields here
+  foo: bar
