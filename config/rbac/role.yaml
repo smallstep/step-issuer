@@ -42,6 +42,7 @@ rules:
   - certmanager.step.sm
   resources:
   - stepissuers
+  - stepclusterissuers
   verbs:
   - create
   - delete
@@ -54,6 +55,7 @@ rules:
   - certmanager.step.sm
   resources:
   - stepissuers/status
+  - stepclusterissuers/status
   verbs:
   - get
   - patch
