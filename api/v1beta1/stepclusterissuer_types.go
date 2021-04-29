@@ -48,13 +48,15 @@ type StepClusterIssuerSpec struct {
 type StepClusterIssuerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// +optional
 	Conditions []StepClusterIssuerCondition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
 
 // StepClusterIssuer is the Schema for the stepclusterissuers API
+// +kubebuilder:subresource:status
 type StepClusterIssuer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -71,59 +73,6 @@ type StepClusterIssuerList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []StepClusterIssuer `json:"items"`
 }
-
-// SecretKeySelector contains the reference to a secret.
-type SecretKeySelector struct {
-	// The name of the secret in the pod's namespace to select from.
-	Name string `json:"name"`
-
-	// The key of the secret to select from. Must be a valid secret key.
-	// +optional
-	Key string `json:"key,omitempty"`
-}
-
-// StepProvisioner contains the configuration used to create step certificate
-// tokens used to grant certificates.
-type StepProvisioner struct {
-	// Names is the name of the JWK provisioner.
-	Name string `json:"name"`
-
-	// KeyID is the kid property of the JWK provisioner.
-	KeyID string `json:"kid"`
-
-	// PasswordRef is a reference to a Secret containing the provisioner
-	// password used to decrypt the provisioner private key.
-	PasswordRef SecretKeySelector `json:"passwordRef"`
-}
-
-// ConditionType represents a StepClusterIssuer condition type.
-// +kubebuilder:validation:Enum=Ready
-type ConditionType string
-
-const (
-	// ConditionReady indicates that a StepClusterIssuer is ready for use.
-	ConditionReady ConditionType = "Ready"
-)
-
-// ConditionStatus represents a condition's status.
-// +kubebuilder:validation:Enum=True;False;Unknown
-type ConditionStatus string
-
-// These are valid condition statuses. "ConditionTrue" means a resource is in
-// the condition; "ConditionFalse" means a resource is not in the condition;
-// "ConditionUnknown" means kubernetes can't decide if a resource is in the
-// condition or not. In the future, we could add other intermediate
-// conditions, e.g. ConditionDegraded.
-const (
-	// ConditionTrue represents the fact that a given condition is true
-	ConditionTrue ConditionStatus = "True"
-
-	// ConditionFalse represents the fact that a given condition is false
-	ConditionFalse ConditionStatus = "False"
-
-	// ConditionUnknown represents the fact that a given condition is unknown
-	ConditionUnknown ConditionStatus = "Unknown"
-)
 
 // StepClusterIssuerCondition contains condition information for the step issuer.
 type StepClusterIssuerCondition struct {

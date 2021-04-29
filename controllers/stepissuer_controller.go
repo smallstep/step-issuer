@@ -87,7 +87,7 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	// Initialize and store the provisioner
-	p, err := provisioners.New(iss, password)
+	p, err := provisioners.NewFromStepIssuer(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Error", "failed initialize provisioner")

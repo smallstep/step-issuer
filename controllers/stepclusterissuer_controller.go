@@ -46,7 +46,7 @@ type StepClusterIssuerReconciler struct {
 
 // Reconcile will read and validate the StepClusterIssuer resources, it will set the
 // status condition ready to true if everything is right.
-func (r *StepClusterIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("stepclusterissuer", req.NamespacedName)
 
 	iss := new(api.StepClusterIssuer)
@@ -55,7 +55,7 @@ func (r *StepClusterIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	statusReconciler := newStepStatusReconciler(r, iss, log)
+	statusReconciler := newStepStatusClusterReconciler(r, iss, log)
 	if err := validateStepClusterIssuerSpec(iss.Spec); err != nil {
 		log.Error(err, "failed to validate StepClusterIssuer resource")
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Validation", "Failed to validate resource: %v", err)
@@ -86,7 +86,7 @@ func (r *StepClusterIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 	}
 
 	// Initialize and store the provisioner
-	p, err := provisioners.New(iss, password)
+	p, err := provisioners.NewFromStepClusterIssuer(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Error", "failed initialize provisioner")
@@ -97,6 +97,8 @@ func (r *StepClusterIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 	return ctrl.Result{}, statusReconciler.Update(ctx, api.ConditionTrue, "Verified", "StepClusterIssuer verified and ready to sign certificates")
 }
 
+// SetupWithManager initializes the StepClusterIssuer controller into the controller
+// runtime.
 func (r *StepClusterIssuerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&api.StepClusterIssuer{}).

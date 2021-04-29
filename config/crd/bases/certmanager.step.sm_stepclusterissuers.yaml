@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.5.0
   creationTimestamp: null
-  name: stepissuers.certmanager.step.sm
+  name: stepclusterissuers.certmanager.step.sm
 spec:
   group: certmanager.step.sm
   names:
-    kind: StepIssuer
-    listKind: StepIssuerList
-    plural: stepissuers
-    singular: stepissuer
+    kind: StepClusterIssuer
+    listKind: StepClusterIssuerList
+    plural: stepclusterissuers
+    singular: stepclusterissuer
   scope: Namespaced
   versions:
   - name: v1beta1
     schema:
       openAPIV3Schema:
-        description: StepIssuer is the Schema for the stepissuers API
+        description: StepClusterIssuer is the Schema for the stepclusterissuers API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -30,7 +30,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: StepIssuerSpec defines the desired state of StepIssuer
+            description: StepClusterIssuerSpec defines the desired state of StepClusterIssuer
             properties:
               caBundle:
                 description: CABundle is a base64 encoded TLS certificate used to verify connections to the step certificates server. If not set the system root certificates are used to validate the TLS connection.
@@ -70,11 +70,11 @@ spec:
             - url
             type: object
           status:
-            description: StepIssuerStatus defines the observed state of StepIssuer
+            description: StepClusterIssuerStatus defines the observed state of StepClusterIssuer
             properties:
               conditions:
                 items:
-                  description: StepIssuerCondition contains condition information for the step issuer.
+                  description: StepClusterIssuerCondition contains condition information for the step issuer.
                   properties:
                     lastTransitionTime:
                       description: LastTransitionTime is the timestamp corresponding to the last status change of this condition.

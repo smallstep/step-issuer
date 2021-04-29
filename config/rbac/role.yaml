@@ -41,7 +41,6 @@ rules:
 - apiGroups:
   - certmanager.step.sm
   resources:
-  - stepissuers
   - stepclusterissuers
   verbs:
   - create
@@ -54,7 +53,6 @@ rules:
 - apiGroups:
   - certmanager.step.sm
   resources:
-  - stepissuers/status
   - stepclusterissuers/status
   verbs:
   - get
