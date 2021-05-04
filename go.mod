@@ -8,7 +8,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
-	github.com/smallstep/certificates v0.14.2
+	github.com/smallstep/certificates v0.15.15
 	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.20.2 // indirect
 	k8s.io/apimachinery v0.20.2
