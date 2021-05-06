@@ -35,7 +35,7 @@ type StepClusterIssuerSpec struct {
 	URL string `json:"url"`
 
 	// Provisioner contains the step certificates provisioner configuration.
-	Provisioner StepProvisioner `json:"provisioner"`
+	Provisioner StepClusterProvisioner `json:"provisioner"`
 
 	// CABundle is a base64 encoded TLS certificate used to verify connections
 	// to the step certificates server. If not set the system root certificates
@@ -73,6 +73,33 @@ type StepClusterIssuerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []StepClusterIssuer `json:"items"`
+}
+
+// StepClusterIssuerSecretKeySelector contains the reference to a secret.
+type StepClusterIssuerSecretKeySelector struct {
+	// The name of the secret in the pod's namespace to select from.
+	Name string `json:"name"`
+
+	// The namespace of the secret in the pod's namespace to select from.
+	Namespace string `json:"namespace"`
+
+	// The key of the secret to select from. Must be a valid secret key.
+	// +optional
+	Key string `json:"key,omitempty"`
+}
+
+// StepClusterProvisioner contains the configuration used to create step certificate
+// tokens used to grant certificates.
+type StepClusterProvisioner struct {
+	// Names is the name of the JWK provisioner.
+	Name string `json:"name"`
+
+	// KeyID is the kid property of the JWK provisioner.
+	KeyID string `json:"kid"`
+
+	// PasswordRef is a reference to a Secret containing the provisioner
+	// password used to decrypt the provisioner private key.
+	PasswordRef StepClusterIssuerSecretKeySelector `json:"passwordRef"`
 }
 
 // StepClusterIssuerCondition contains condition information for the step issuer.

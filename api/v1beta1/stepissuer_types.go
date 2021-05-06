@@ -74,8 +74,8 @@ type StepIssuerList struct {
 	Items           []StepIssuer `json:"items"`
 }
 
-// SecretKeySelector contains the reference to a secret.
-type SecretKeySelector struct {
+// StepIssuerSecretKeySelector contains the reference to a secret.
+type StepIssuerSecretKeySelector struct {
 	// The name of the secret in the pod's namespace to select from.
 	Name string `json:"name"`
 
@@ -95,7 +95,7 @@ type StepProvisioner struct {
 
 	// PasswordRef is a reference to a Secret containing the provisioner
 	// password used to decrypt the provisioner private key.
-	PasswordRef SecretKeySelector `json:"passwordRef"`
+	PasswordRef StepIssuerSecretKeySelector `json:"passwordRef"`
 }
 
 // ConditionType represents a StepIssuer condition type.

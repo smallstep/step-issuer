@@ -66,7 +66,7 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// Fetch the provisioner password
 	var secret core.Secret
 	secretNamespaceName := types.NamespacedName{
-		Namespace: req.Namespace,
+		Namespace: iss.Spec.Provisioner.PasswordRef.Namespace,
 		Name:      iss.Spec.Provisioner.PasswordRef.Name,
 	}
 	log.Info("secretNamespaceName", secretNamespaceName)
