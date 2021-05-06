@@ -109,45 +109,87 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	// Fetch the StepIssuer resource
-	iss := api.StepIssuer{}
-	issNamespaceName := types.NamespacedName{
-		Namespace: req.Namespace,
-		Name:      cr.Spec.IssuerRef.Name,
-	}
-	if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
-		log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
-		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepIssuer resource %s: %v", issNamespaceName, err)
-		return ctrl.Result{}, err
-	}
+	if cr.Spec.IssuerRef.Kind == "StepClusterIssuer" {
+		iss := api.StepClusterIssuer{}
+		issNamespaceName := types.NamespacedName{
+			Namespace: "",
+			Name: cr.Spec.IssuerRef.Name,
+		}
 
-	// Check if the StepIssuer resource has been marked Ready
-	if !stepIssuerHasCondition(iss, api.StepIssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
-		err := fmt.Errorf("resource %s is not ready", issNamespaceName)
-		log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
-		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepIssuer resource %s is not Ready", issNamespaceName)
-		return ctrl.Result{}, err
-	}
+		if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
+			log.Error(err, "failed to retrieve StepClusterIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
+			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepClusterIssuer resource %s: %v", issNamespaceName, err)
+			return ctrl.Result{}, err
+		}
+	
+		// Check if the StepClusterIssuer resource has been marked Ready
+		if !stepClusterIssuerHasCondition(iss, api.StepClusterIssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
+			err := fmt.Errorf("resource %s is not ready", issNamespaceName)
+			log.Error(err, "failed to retrieve StepClusterIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
+			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepClusterIssuer resource %s is not Ready", issNamespaceName)
+			return ctrl.Result{}, err
+		}
+	
+		// Load the provisioner that will sign the CertificateRequest
+		provisioner, ok := provisioners.Load(issNamespaceName)
+		if !ok {
+			err := fmt.Errorf("provisioner %s not found", issNamespaceName)
+			log.Error(err, "failed to provisioner for StepClusterIssuer resource")
+			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepClusterIssuer resource %s", issNamespaceName)
+			return ctrl.Result{}, err
+		}
+	
+		// Sign CertificateRequest
+		signedPEM, trustedCAs, err := provisioner.Sign(ctx, cr)
+		if err != nil {
+			log.Error(err, "failed to sign certificate request")
+			return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "Failed to sign certificate request: %v", err)
+		}
+		cr.Status.Certificate = signedPEM
+		cr.Status.CA = trustedCAs
+	
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionTrue, cmapi.CertificateRequestReasonIssued, "Certificate issued")
+	} else {
+		iss := api.StepIssuer{}
+		issNamespaceName := types.NamespacedName{
+		  Namespace: req.Namespace,
+		  Name:      cr.Spec.IssuerRef.Name,
+	  }
 
-	// Load the provisioner that will sign the CertificateRequest
-	provisioner, ok := provisioners.Load(issNamespaceName)
-	if !ok {
-		err := fmt.Errorf("provisioner %s not found", issNamespaceName)
-		log.Error(err, "failed to provisioner for StepIssuer resource")
-		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepIssuer resource %s", issNamespaceName)
-		return ctrl.Result{}, err
-	}
+		if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
+			log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
+			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepIssuer resource %s: %v", issNamespaceName, err)
+			return ctrl.Result{}, err
+		}
 
-	// Sign CertificateRequest
-	signedPEM, trustedCAs, err := provisioner.Sign(ctx, cr)
-	if err != nil {
-		log.Error(err, "failed to sign certificate request")
-		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "Failed to sign certificate request: %v", err)
-	}
-	cr.Status.Certificate = signedPEM
-	cr.Status.CA = trustedCAs
+		// Check if the StepIssuer resource has been marked Ready
+		if !stepIssuerHasCondition(iss, api.StepIssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
+			err := fmt.Errorf("resource %s is not ready", issNamespaceName)
+			log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
+			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepIssuer resource %s is not Ready", issNamespaceName)
+			return ctrl.Result{}, err
+		}
 
-	return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionTrue, cmapi.CertificateRequestReasonIssued, "Certificate issued")
+		// Load the provisioner that will sign the CertificateRequest
+		provisioner, ok := provisioners.Load(issNamespaceName)
+		if !ok {
+			err := fmt.Errorf("provisioner %s not found", issNamespaceName)
+			log.Error(err, "failed to provisioner for StepIssuer resource")
+			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepIssuer resource %s", issNamespaceName)
+			return ctrl.Result{}, err
+		}
+
+		// Sign CertificateRequest
+		signedPEM, trustedCAs, err := provisioner.Sign(ctx, cr)
+		if err != nil {
+			log.Error(err, "failed to sign certificate request")
+			return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "Failed to sign certificate request: %v", err)
+		}
+		cr.Status.Certificate = signedPEM
+		cr.Status.CA = trustedCAs
+
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionTrue, cmapi.CertificateRequestReasonIssued, "Certificate issued")
+	}
 }
 
 // SetupWithManager initializes the CertificateRequest controller into the
@@ -164,6 +206,21 @@ func (r *CertificateRequestReconciler) SetupWithManager(mgr ctrl.Manager) error 
 // return 'true' even if the Reason, Message and LastTransitionTime fields do
 // not match.
 func stepIssuerHasCondition(iss api.StepIssuer, c api.StepIssuerCondition) bool {
+	existingConditions := iss.Status.Conditions
+	for _, cond := range existingConditions {
+		if c.Type == cond.Type && c.Status == cond.Status {
+			return true
+		}
+	}
+	return false
+}
+
+// stepClusterIssuerHasCondition will return true if the given StepClusterIssuer resource has
+// a condition matching the provided StepClusterIssuerCondition. Only the Type and
+// Status field will be used in the comparison, meaning that this function will
+// return 'true' even if the Reason, Message and LastTransitionTime fields do
+// not match.
+func stepClusterIssuerHasCondition(iss api.StepClusterIssuer, c api.StepClusterIssuerCondition) bool {
 	existingConditions := iss.Status.Conditions
 	for _, cond := range existingConditions {
 		if c.Type == cond.Type && c.Status == cond.Status {

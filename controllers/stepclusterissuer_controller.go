@@ -69,7 +69,6 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		Namespace: iss.Spec.Provisioner.PasswordRef.Namespace,
 		Name:      iss.Spec.Provisioner.PasswordRef.Name,
 	}
-	log.Info("secretNamespaceName", secretNamespaceName)
 	if err := r.Client.Get(ctx, secretNamespaceName, &secret); err != nil {
 		log.Error(err, "failed to retrieve StepClusterIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
 		if apierrors.IsNotFound(err) {
