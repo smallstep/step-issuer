@@ -54,6 +54,7 @@ type StepClusterIssuerStatus struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
 
 // StepClusterIssuer is the Schema for the stepclusterissuers API
 // +kubebuilder:subresource:status
