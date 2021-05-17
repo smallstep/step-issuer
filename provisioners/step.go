@@ -118,8 +118,12 @@ func (s *Step) Sign(ctx context.Context, cr *certmanager.CertificateRequest) ([]
 	}
 
 	sans := append([]string{}, csr.DNSNames...)
+	sans = append(sans, csr.EmailAddresses...)
 	for _, ip := range csr.IPAddresses {
 		sans = append(sans, ip.String())
+	}
+	for _, u := range csr.URIs {
+		sans = append(sans, u.String())
 	}
 
 	subject := csr.Subject.CommonName
