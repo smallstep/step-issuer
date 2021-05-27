@@ -59,12 +59,24 @@ rules:
   - patch
   - update
 - apiGroups:
-  - coordination.k8s.io
+  - certmanager.step.sm
   resources:
-  - leases
+  - stepissuers
   verbs:
   - create
+  - delete
   - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - certmanager.step.sm
+  resources:
+  - stepissuers/status
+  verbs:
+  - get
+  - patch
   - update
 - apiGroups:
   - coordination.k8s.io
