@@ -9,7 +9,7 @@ sign the certificate requests.
 
 In this guide, we assume that you have a [Kubernetes](https://kubernetes.io/)
 environment with a [cert-manager](https://github.com/jetstack/cert-manager)
-version supporting CertificateRequest issuers, cert-manager v0.11.0 or higher.
+version supporting CertificateRequest issuers, cert-manager `v1.0.0` or higher.
 
 ### Installing step certificates
 
@@ -299,7 +299,7 @@ as the root certificate will be available in the resource:
 
 ```sh
 $ kubectl get certificaterequests.cert-manager.io internal-smallstep-com -o yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: CertificateRequest
 ...
 status:
