@@ -12,3 +12,4 @@ rules:
   - approve
   resourceNames:
   - stepissuers.certmanager.step.sm/*
+  - stepclusterissuers.certmanager.step.sm/*

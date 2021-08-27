@@ -41,6 +41,26 @@ rules:
 - apiGroups:
   - certmanager.step.sm
   resources:
+  - stepclusterissuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - certmanager.step.sm
+  resources:
+  - stepclusterissuers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - certmanager.step.sm
+  resources:
   - stepissuers
   verbs:
   - create

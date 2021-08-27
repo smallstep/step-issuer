@@ -26,7 +26,34 @@ type Step struct {
 
 // New returns a new Step provisioner, configured with the information in the
 // given issuer.
-func New(iss *api.StepIssuer, password []byte) (*Step, error) {
+func NewFromStepIssuer(iss *api.StepIssuer, password []byte) (*Step, error) {
+	var options []ca.ClientOption
+	if len(iss.Spec.CABundle) > 0 {
+		options = append(options, ca.WithCABundle(iss.Spec.CABundle))
+	}
+	provisioner, err := ca.NewProvisioner(iss.Spec.Provisioner.Name, iss.Spec.Provisioner.KeyID, iss.Spec.URL, password, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	p := &Step{
+		name:        iss.Name + "." + iss.Namespace,
+		provisioner: provisioner,
+	}
+
+	// Request identity certificate if required.
+	if version, err := provisioner.Version(); err == nil {
+		if version.RequireClientAuthentication {
+			if err := p.createIdentityCertificate(); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return p, nil
+}
+
+func NewFromStepClusterIssuer(iss *api.StepClusterIssuer, password []byte) (*Step, error) {
 	var options []ca.ClientOption
 	if len(iss.Spec.CABundle) > 0 {
 		options = append(options, ca.WithCABundle(iss.Spec.CABundle))

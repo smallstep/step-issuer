@@ -129,6 +129,7 @@ First we install the CRDs:
 
 ```sh
 kubectl apply -f config/crd/bases/certmanager.step.sm_stepissuers.yaml
+kubectl apply -f config/crd/bases/certmanager.step.sm_stepclusterissuers.yaml
 ```
 
 Then we install the controller:

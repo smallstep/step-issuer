@@ -31,34 +31,34 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// StepIssuerReconciler reconciles a StepIssuer object
-type StepIssuerReconciler struct {
+// StepClusterIssuerReconciler reconciles a StepClusterIssuer object
+type StepClusterIssuerReconciler struct {
 	client.Client
 	Log      logr.Logger
 	Clock    clock.Clock
 	Recorder record.EventRecorder
 }
 
-// +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepissuers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepissuers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepclusterissuers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepclusterissuers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;create;update
 
-// Reconcile will read and validate the StepIssuer resources, it will set the
+// Reconcile will read and validate the StepClusterIssuer resources, it will set the
 // status condition ready to true if everything is right.
-func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("stepissuer", req.NamespacedName)
+func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("stepclusterissuer", req.NamespacedName)
 
-	iss := new(api.StepIssuer)
+	iss := new(api.StepClusterIssuer)
 	if err := r.Client.Get(ctx, req.NamespacedName, iss); err != nil {
-		log.Error(err, "failed to retrieve StepIssuer resource")
+		log.Error(err, "failed to retrieve StepClusterIssuer resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	statusReconciler := newStepStatusReconciler(r, iss, log)
-	if err := validateStepIssuerSpec(iss.Spec); err != nil {
-		log.Error(err, "failed to validate StepIssuer resource")
+	statusReconciler := newStepStatusClusterReconciler(r, iss, log)
+	if err := validateStepClusterIssuerSpec(iss.Spec); err != nil {
+		log.Error(err, "failed to validate StepClusterIssuer resource")
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Validation", "Failed to validate resource: %v", err)
 		return ctrl.Result{}, err
 	}
@@ -66,11 +66,11 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// Fetch the provisioner password
 	var secret core.Secret
 	secretNamespaceName := types.NamespacedName{
-		Namespace: req.Namespace,
+		Namespace: iss.Spec.Provisioner.PasswordRef.Namespace,
 		Name:      iss.Spec.Provisioner.PasswordRef.Name,
 	}
 	if err := r.Client.Get(ctx, secretNamespaceName, &secret); err != nil {
-		log.Error(err, "failed to retrieve StepIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
+		log.Error(err, "failed to retrieve StepClusterIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
 		if apierrors.IsNotFound(err) {
 			statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
 		} else {
@@ -81,13 +81,13 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	password, ok := secret.Data[iss.Spec.Provisioner.PasswordRef.Key]
 	if !ok {
 		err := fmt.Errorf("secret %s does not contain key %s", secret.Name, iss.Spec.Provisioner.PasswordRef.Key)
-		log.Error(err, "failed to retrieve StepIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
+		log.Error(err, "failed to retrieve StepClusterIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
 		return ctrl.Result{}, err
 	}
 
 	// Initialize and store the provisioner
-	p, err := provisioners.NewFromStepIssuer(iss, password)
+	p, err := provisioners.NewFromStepClusterIssuer(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Error", "failed initialize provisioner")
@@ -95,18 +95,18 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 	provisioners.Store(req.NamespacedName, p)
 
-	return ctrl.Result{}, statusReconciler.Update(ctx, api.ConditionTrue, "Verified", "StepIssuer verified and ready to sign certificates")
+	return ctrl.Result{}, statusReconciler.Update(ctx, api.ConditionTrue, "Verified", "StepClusterIssuer verified and ready to sign certificates")
 }
 
-// SetupWithManager initializes the StepIssuer controller into the controller
+// SetupWithManager initializes the StepClusterIssuer controller into the controller
 // runtime.
-func (r *StepIssuerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *StepClusterIssuerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&api.StepIssuer{}).
+		For(&api.StepClusterIssuer{}).
 		Complete(r)
 }
 
-func validateStepIssuerSpec(s api.StepIssuerSpec) error {
+func validateStepClusterIssuerSpec(s api.StepClusterIssuerSpec) error {
 	switch {
 	case s.URL == "":
 		return fmt.Errorf("spec.url cannot be empty")

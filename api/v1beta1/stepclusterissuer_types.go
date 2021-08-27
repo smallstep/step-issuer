@@ -23,11 +23,11 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 func init() {
-	SchemeBuilder.Register(&StepIssuer{}, &StepIssuerList{})
+	SchemeBuilder.Register(&StepClusterIssuer{}, &StepClusterIssuerList{})
 }
 
-// StepIssuerSpec defines the desired state of StepIssuer
-type StepIssuerSpec struct {
+// StepClusterIssuerSpec defines the desired state of StepClusterIssuer
+type StepClusterIssuerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -35,7 +35,7 @@ type StepIssuerSpec struct {
 	URL string `json:"url"`
 
 	// Provisioner contains the step certificates provisioner configuration.
-	Provisioner StepProvisioner `json:"provisioner"`
+	Provisioner StepClusterProvisioner `json:"provisioner"`
 
 	// CABundle is a base64 encoded TLS certificate used to verify connections
 	// to the step certificates server. If not set the system root certificates
@@ -44,49 +44,53 @@ type StepIssuerSpec struct {
 	CABundle []byte `json:"caBundle,omitempty"`
 }
 
-// StepIssuerStatus defines the observed state of StepIssuer
-type StepIssuerStatus struct {
+// StepClusterIssuerStatus defines the observed state of StepClusterIssuer
+type StepClusterIssuerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// +optional
-	Conditions []StepIssuerCondition `json:"conditions,omitempty"`
+	Conditions []StepClusterIssuerCondition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
 
-// StepIssuer is the Schema for the stepissuers API
+// StepClusterIssuer is the Schema for the stepclusterissuers API
 // +kubebuilder:subresource:status
-type StepIssuer struct {
+type StepClusterIssuer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   StepIssuerSpec   `json:"spec,omitempty"`
-	Status StepIssuerStatus `json:"status,omitempty"`
+	Spec   StepClusterIssuerSpec   `json:"spec,omitempty"`
+	Status StepClusterIssuerStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// StepIssuerList contains a list of StepIssuer
-type StepIssuerList struct {
+// StepClusterIssuerList contains a list of StepClusterIssuer
+type StepClusterIssuerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []StepIssuer `json:"items"`
+	Items           []StepClusterIssuer `json:"items"`
 }
 
-// StepIssuerSecretKeySelector contains the reference to a secret.
-type StepIssuerSecretKeySelector struct {
+// StepClusterIssuerSecretKeySelector contains the reference to a secret.
+type StepClusterIssuerSecretKeySelector struct {
 	// The name of the secret in the pod's namespace to select from.
 	Name string `json:"name"`
+
+	// The namespace of the secret in the pod's namespace to select from.
+	Namespace string `json:"namespace"`
 
 	// The key of the secret to select from. Must be a valid secret key.
 	// +optional
 	Key string `json:"key,omitempty"`
 }
 
-// StepProvisioner contains the configuration used to create step certificate
+// StepClusterProvisioner contains the configuration used to create step certificate
 // tokens used to grant certificates.
-type StepProvisioner struct {
+type StepClusterProvisioner struct {
 	// Names is the name of the JWK provisioner.
 	Name string `json:"name"`
 
@@ -95,40 +99,11 @@ type StepProvisioner struct {
 
 	// PasswordRef is a reference to a Secret containing the provisioner
 	// password used to decrypt the provisioner private key.
-	PasswordRef StepIssuerSecretKeySelector `json:"passwordRef"`
+	PasswordRef StepClusterIssuerSecretKeySelector `json:"passwordRef"`
 }
 
-// ConditionType represents a StepIssuer condition type.
-// +kubebuilder:validation:Enum=Ready
-type ConditionType string
-
-const (
-	// ConditionReady indicates that a StepIssuer is ready for use.
-	ConditionReady ConditionType = "Ready"
-)
-
-// ConditionStatus represents a condition's status.
-// +kubebuilder:validation:Enum=True;False;Unknown
-type ConditionStatus string
-
-// These are valid condition statuses. "ConditionTrue" means a resource is in
-// the condition; "ConditionFalse" means a resource is not in the condition;
-// "ConditionUnknown" means kubernetes can't decide if a resource is in the
-// condition or not. In the future, we could add other intermediate
-// conditions, e.g. ConditionDegraded.
-const (
-	// ConditionTrue represents the fact that a given condition is true
-	ConditionTrue ConditionStatus = "True"
-
-	// ConditionFalse represents the fact that a given condition is false
-	ConditionFalse ConditionStatus = "False"
-
-	// ConditionUnknown represents the fact that a given condition is unknown
-	ConditionUnknown ConditionStatus = "Unknown"
-)
-
-// StepIssuerCondition contains condition information for the step issuer.
-type StepIssuerCondition struct {
+// StepClusterIssuerCondition contains condition information for the step issuer.
+type StepClusterIssuerCondition struct {
 	// Type of the condition, currently ('Ready').
 	Type ConditionType `json:"type"`
 

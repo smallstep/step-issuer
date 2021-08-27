@@ -5,3 +5,7 @@ resources:
 - group: certmanager
   version: v1beta1
   kind: StepIssuer
+- group: certmanager
+  kind: StepClusterIssuer
+  version: v1beta1
+
