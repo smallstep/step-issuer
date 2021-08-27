@@ -113,7 +113,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		iss := api.StepClusterIssuer{}
 		issNamespaceName := types.NamespacedName{
 			Namespace: "",
-			Name: cr.Spec.IssuerRef.Name,
+			Name:      cr.Spec.IssuerRef.Name,
 		}
 
 		if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
@@ -121,7 +121,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to retrieve StepClusterIssuer resource %s: %v", issNamespaceName, err)
 			return ctrl.Result{}, err
 		}
-	
+
 		// Check if the StepClusterIssuer resource has been marked Ready
 		if !stepClusterIssuerHasCondition(iss, api.StepClusterIssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
 			err := fmt.Errorf("resource %s is not ready", issNamespaceName)
@@ -129,7 +129,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "StepClusterIssuer resource %s is not Ready", issNamespaceName)
 			return ctrl.Result{}, err
 		}
-	
+
 		// Load the provisioner that will sign the CertificateRequest
 		provisioner, ok := provisioners.Load(issNamespaceName)
 		if !ok {
@@ -138,7 +138,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonPending, "Failed to load provisioner for StepClusterIssuer resource %s", issNamespaceName)
 			return ctrl.Result{}, err
 		}
-	
+
 		// Sign CertificateRequest
 		signedPEM, trustedCAs, err := provisioner.Sign(ctx, cr)
 		if err != nil {
@@ -147,14 +147,14 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 		cr.Status.Certificate = signedPEM
 		cr.Status.CA = trustedCAs
-	
+
 		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionTrue, cmapi.CertificateRequestReasonIssued, "Certificate issued")
 	} else {
 		iss := api.StepIssuer{}
 		issNamespaceName := types.NamespacedName{
-		  Namespace: req.Namespace,
-		  Name:      cr.Spec.IssuerRef.Name,
-	  }
+			Namespace: req.Namespace,
+			Name:      cr.Spec.IssuerRef.Name,
+		}
 
 		if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
 			log.Error(err, "failed to retrieve StepIssuer resource", "namespace", req.Namespace, "name", cr.Spec.IssuerRef.Name)
