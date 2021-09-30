@@ -129,13 +129,9 @@ func (s *Step) Sign(ctx context.Context, cr *certmanager.CertificateRequest) ([]
 	}
 
 	// Encode root certificates
-	var caPem []byte
-	for _, root := range roots.Certificates {
-		b, err := encodeX509(root.Certificate)
-		if err != nil {
-			return nil, nil, err
-		}
-		caPem = append(caPem, b...)
+	caPem, err := encodeX509(roots.Certificates...)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// decode and check certificate request
@@ -180,17 +176,11 @@ func (s *Step) Sign(ctx context.Context, cr *certmanager.CertificateRequest) ([]
 	}
 
 	// Encode server certificate with the intermediate
-	certPem, err := encodeX509(resp.ServerPEM.Certificate)
+	chainPem, err := encodeX509(resp.CertChainPEM...)
 	if err != nil {
 		return nil, nil, err
 	}
-	chainPem, err := encodeX509(resp.CaPEM.Certificate)
-	if err != nil {
-		return nil, nil, err
-	}
-	certPem = append(certPem, chainPem...)
-
-	return certPem, caPem, nil
+	return chainPem, caPem, nil
 }
 
 // decodeCSR decodes a certificate request in PEM format and returns the
@@ -212,14 +202,16 @@ func decodeCSR(data []byte) (*x509.CertificateRequest, error) {
 	return csr, nil
 }
 
-// encodeX509 will encode a *x509.Certificate into PEM format.
-func encodeX509(cert *x509.Certificate) ([]byte, error) {
-	caPem := bytes.NewBuffer([]byte{})
-	err := pem.Encode(caPem, &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
-	if err != nil {
-		return nil, err
+// encodeX509 will encode a certificate into PEM format.
+func encodeX509(certs ...capi.Certificate) ([]byte, error) {
+	certPem := bytes.NewBuffer([]byte{})
+	for _, cert := range certs {
+		err := pem.Encode(certPem, &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
+		if err != nil {
+			return nil, err
+		}
 	}
-	return caPem.Bytes(), nil
+	return certPem.Bytes(), nil
 }
 
 // generateSubject returns the first SAN that is not 127.0.0.1 or localhost. The
