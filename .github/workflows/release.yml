@@ -3,10 +3,10 @@ name: Create Release & Upload Assets
 on:
   push:
     tags:
-      - 'v*' # Push events matching v*, ie, v1.0, v0.85-rc3
+    - 'v*' # Push events matching v*, ie, v1.0, v0.85-rc3
 
 jobs:
-    goreleaser:
+  goreleaser:
     name: Build and publish a release with GoReleaser
     runs-on: ubuntu-20.04
     needs: create_release
