@@ -1,0 +1,39 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+builds:
+  - 
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    binary: manager
+dockers:
+  -
+    goarch: amd64
+    use: buildx
+    build_flag_templates:
+    - "--platform=linux/amd64"
+    image_templates:
+      - "docker.io/smallstep/step-issuer:latest-amd64"
+      - "docker.io/smallstep/step-issuer:{{ .RawVersion }}-amd64"
+  -
+    goarch: arm64
+    use: buildx
+    build_flag_templates:
+    - "--platform=linux/arm64"
+    image_templates:
+      - "docker.io/smallstep/step-issuer:latest-arm64"
+      - "docker.io/smallstep/step-issuer:{{ .RawVersion }}-arm64"
+docker_manifests:
+  -
+    name_template: "smallstep/step-issuer:{{ .RawVersion }}"
+    image_templates:
+      - "docker.io/smallstep/step-issuer:{{ .RawVersion }}-arm64"
+      - "docker.io/smallstep/step-issuer:{{ .RawVersion }}-amd64"
+
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc

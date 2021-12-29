@@ -1,0 +1,41 @@
+name: Create Release & Upload Assets
+
+on:
+  push:
+    tags:
+      - 'v*' # Push events matching v*, ie, v1.0, v0.85-rc3
+
+jobs:
+    goreleaser:
+    name: Build and publish a release with GoReleaser
+    runs-on: ubuntu-20.04
+    needs: create_release
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      -
+        name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      -
+        name: Configure Go
+        id: configure_go
+        run: |
+          PATH=$PATH:/usr/local/go/bin:/home/admin/go/bin
+     -
+        name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+     -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist
+
