@@ -18,7 +18,9 @@ endif
 
 all: lint test build
 
-.PHONY: all
+ci: test build
+
+.PHONY: all ci
 
 #########################################
 # Bootstrapping
@@ -26,7 +28,7 @@ all: lint test build
 
 bootstra%:
 	# Using a released version of golangci-lint to take into account custom replacements in their go.mod
-	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.42.1
+	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.46.2
 
 .PHONY: bootstra%
 
@@ -36,7 +38,16 @@ bootstra%:
 
 # If TRAVIS_TAG is set then we know this ref has been tagged.
 ifdef TRAVIS_TAG
-VERSION := $(TRAVIS_TAG)
+VERSION ?= $(TRAVIS_TAG)
+NOT_RC  := $(shell echo $(VERSION) | grep -v -e -rc)
+	ifeq ($(NOT_RC),)
+PUSHTYPE := release-candidate
+	else
+PUSHTYPE := release
+	endif
+# GITHUB Actions
+else ifdef GITHUB_REF
+VERSION ?= $(shell echo $(GITHUB_REF) | sed 's/^refs\/tags\///')
 NOT_RC  := $(shell echo $(VERSION) | grep -v -e -rc)
 	ifeq ($(NOT_RC),)
 PUSHTYPE := release-candidate
@@ -45,14 +56,21 @@ PUSHTYPE := release
 	endif
 else
 VERSION ?= $(shell [ -d .git ] && git describe --tags --always --dirty="-dev")
-VERSION := $(or $(VERSION),v0.0.0)
+# If we are not in an active git dir then try reading the version from .VERSION.
+# .VERSION contains a slug populated by `git archive`.
+VERSION := $(or $(VERSION),$(shell ./.version.sh .VERSION))
+	ifeq ($(TRAVIS_BRANCH),master)
 PUSHTYPE := master
+	else
+PUSHTYPE := branch
+	endif
 endif
 
 VERSION := $(shell echo $(VERSION) | sed 's/^v//')
 
 ifdef V
 $(info    TRAVIS_TAG is $(TRAVIS_TAG))
+$(info    GITHUB_REF is $(GITHUB_REF))
 $(info    VERSION is $(VERSION))
 $(info    PUSHTYPE is $(PUSHTYPE))
 endif
