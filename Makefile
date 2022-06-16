@@ -61,7 +61,7 @@ endif
 # Test
 #########################################
 
-test: generate fmt vet manifests
+test: fmt vet manifests
 	$Q go test ./api/... ./controllers/... -coverprofile cover.out
 
 .PHONY: test
@@ -86,8 +86,12 @@ $(PREFIX)bin/$(BINNAME): generate $(call rwildcard,*.go)
 #########################################
 
 # Generate code
-generate: controller-gen
+generate: controller-gen manifests
 	$Q $(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths=./api/...
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: controller-gen
+	$Q $(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -99,13 +103,11 @@ else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
+.PHONY: generate manifests controller-gen
+
 #########################################
 # Install
 #########################################
-
-# Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
-	$Q $(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Install CRDs into a cluster
 install: manifests
@@ -115,6 +117,8 @@ install: manifests
 deploy: manifests
 	$Q kubectl apply -f config/crd/bases
 	$Q kustomize build config/default | kubectl apply -f -
+
+.PHONY: install deploy
 
 #########################################
 # Format and Linting
