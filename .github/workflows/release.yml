@@ -7,33 +7,13 @@ on:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  test:
-    name: Lint, Test, Build
-    runs-on: ubuntu-20.04
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v2
-      -
-        name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.18'
-      -
-        name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: 'v1.46.2'
-          args: --timeout=30m
-      -
-        name: Test, Build
-        id: lintTestBuild
-        run: V=1 make ci
+  ci:
+    uses: smallstep/workflows/.github/workflows/goCI.yml@main
 
   create_release:
     name: Create Release
-    needs: test
-    runs-on: ubuntu-20.04
+    needs: ci
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.extract-tag.outputs.VERSION }}
       vversion: ${{ steps.extract-tag.outputs.VVERSION }}
@@ -70,8 +50,8 @@ jobs:
 
   build_upload_docker:
     name: Build & Upload Docker Images
-    runs-on: ubuntu-20.04
-    needs: test
+    runs-on: ubuntu-latest
+    needs: ci
     steps:
       -
         name: Checkout

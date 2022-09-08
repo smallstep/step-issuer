@@ -47,12 +47,12 @@ func (r *stepStatusReconciler) UpdateNoError(ctx context.Context, status api.Con
 // setCondition will set a 'condition' on the given api.StepIssuer resource.
 //
 // - If no condition of the same type already exists, the condition will be
-//   inserted with the LastTransitionTime set to the current time.
+// inserted with the LastTransitionTime set to the current time.
 // - If a condition of the same type and state already exists, the condition
-//   will be updated but the LastTransitionTime will not be modified.
+// will be updated but the LastTransitionTime will not be modified.
 // - If a condition of the same type and different state already exists, the
-//   condition will be updated and the LastTransitionTime set to the current
-//   time.
+// condition will be updated and the LastTransitionTime set to the current
+// time.
 func (r *stepStatusReconciler) setCondition(status api.ConditionStatus, reason, message string) {
 	now := meta.NewTime(r.Clock.Now())
 	c := api.StepIssuerCondition{
