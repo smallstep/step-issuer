@@ -87,6 +87,7 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Initialize and store the provisioner
+	//nolint:contextcheck // legacy
 	p, err := provisioners.NewFromStepClusterIssuer(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")

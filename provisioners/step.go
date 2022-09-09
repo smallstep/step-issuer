@@ -24,7 +24,7 @@ type Step struct {
 	provisioner *ca.Provisioner
 }
 
-// New returns a new Step provisioner, configured with the information in the
+// NewFromStepIssuer returns a new Step provisioner, configured with the information in the
 // given issuer.
 func NewFromStepIssuer(iss *api.StepIssuer, password []byte) (*Step, error) {
 	var options []ca.ClientOption
@@ -194,10 +194,10 @@ func decodeCSR(data []byte) (*x509.CertificateRequest, error) {
 	}
 	csr, err := x509.ParseCertificateRequest(block.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing certificate request: %v", err)
+		return nil, fmt.Errorf("error parsing certificate request: %w", err)
 	}
 	if err := csr.CheckSignature(); err != nil {
-		return nil, fmt.Errorf("error checking certificate request signature: %v", err)
+		return nil, fmt.Errorf("error checking certificate request signature: %w", err)
 	}
 	return csr, nil
 }

@@ -87,6 +87,7 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	// Initialize and store the provisioner
+	//nolint:contextcheck // legacy
 	p, err := provisioners.NewFromStepIssuer(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")

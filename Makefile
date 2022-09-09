@@ -27,10 +27,10 @@ ci: test build
 #########################################
 
 bootstra%:
-	# Using a released version of golangci-lint to take into account custom replacements in their go.mod
-	$Q curl -sSfL https://raw.githubusercontent.com/smallstep/cli/master/make/golangci-install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.46.2
+	$Q curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.49.0
+	$Q go install golang.org/x/vuln/cmd/govulncheck@latest
 
-.PHONY: bootstra%
+.PHONY: bootstrap
 
 #################################################
 # Determine the type of `push` and `version`
@@ -79,7 +79,7 @@ endif
 # Test
 #########################################
 
-test: fmt vet manifests
+test: fmt manifests
 	$Q go test ./api/... ./controllers/... -coverprofile cover.out
 
 .PHONY: test
@@ -139,21 +139,18 @@ deploy: manifests
 .PHONY: install deploy
 
 #########################################
-# Format and Linting
+# Linting
 #########################################
 
-# Run go fmt against code
 fmt:
-	$Q go fmt ./...
+	$Q goimports -local github.com/golangci/golangci-lint -l -w $(SRC)
 
-# Run go vet against code
-vet:
-	$Q go vet ./...
-
+lint: SHELL:=/bin/bash
 lint:
-	$Q LOG_LEVEL=error golangci-lint run --timeout 5m
+	$Q LOG_LEVEL=error golangci-lint run --config <(curl -s https://raw.githubusercontent.com/smallstep/workflows/master/.golangci.yml) --timeout=30m
+	$Q govulncheck ./...
 
-.PHONY: fmt vet lint
+.PHONY: fmt lint
 
 #########################################
 # Dev
