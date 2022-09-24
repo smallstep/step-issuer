@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    uses: smallstep/workflows/.github/workflows/goCI.yml@main
+    uses: smallstep/step-issuer/.github/workflows/ci.yml@main
 
   create_release:
     name: Create Release
