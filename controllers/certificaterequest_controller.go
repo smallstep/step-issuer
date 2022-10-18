@@ -20,10 +20,10 @@ import (
 	"context"
 	"fmt"
 
+	apiutil "github.com/cert-manager/cert-manager/pkg/api/util"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/go-logr/logr"
-	apiutil "github.com/jetstack/cert-manager/pkg/api/util"
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/provisioners"
 	core "k8s.io/api/core/v1"
