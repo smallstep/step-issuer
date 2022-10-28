@@ -12,7 +12,7 @@ jobs:
 
   create_release:
     name: Create Release
-    needs: ci
+      #needs: ci
     runs-on: ubuntu-latest
     env:
       DOCKER_IMAGE: smallstep/step-issuer
