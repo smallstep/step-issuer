@@ -8,36 +8,35 @@ on:
 
 jobs:
   ci:
-    uses: smallstep/step-issuer/.github/workflows/ci.yml@main
+    uses: smallstep/step-issuer/.github/workflows/ci.yml@master
 
   create_release:
     name: Create Release
     needs: ci
     runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE: smallstep/step-issuer
     outputs:
-      version: ${{ steps.extract-tag.outputs.VERSION }}
-      vversion: ${{ steps.extract-tag.outputs.VVERSION }}
-      is_prerelease: ${{ steps.is_prerelease.outputs.IS_PRERELEASE }}
+      docker_tags: ${{ env.DOCKER_TAGS }}
     steps:
-      -
-        name: Extract Tag Names
-        id: extract-tag
-        run: |
-          VVERSION=${GITHUB_REF#refs/tags/}
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "::set-output name=VVERSION::${VVERSION}"
-          echo "::set-output name=VERSION::${VERSION}"
-      -
-        name: Is Pre-release
+      - name: Is Pre-release
         id: is_prerelease
         run: |
           set +e
           echo ${{ github.ref }} | grep "\-rc.*"
           OUT=$?
           if [ $OUT -eq 0 ]; then IS_PRERELEASE=true; else IS_PRERELEASE=false; fi
-          echo "::set-output name=IS_PRERELEASE::${IS_PRERELEASE}"
-      -
-        name: Create Release
+          echo "IS_PRERELEASE=${IS_PRERELEASE}" >> ${GITHUB_OUTPUT}
+      - name: Extract Tag Names
+        id: extract-tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "DOCKER_TAGS=${{ env.DOCKER_IMAGE }}:${VERSION}" >> ${GITHUB_ENV}
+      - name: Add Latest Tag
+        if: steps.is_prerelease.outputs.IS_PRERELEASE == 'false'
+        run: |
+          echo "DOCKER_TAGS=${{ env.DOCKER_TAGS }},${{ env.DOCKER_IMAGE }}:latest" >> ${GITHUB_ENV}
+      - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -50,21 +49,15 @@ jobs:
 
   build_upload_docker:
     name: Build & Upload Docker Images
-    runs-on: ubuntu-latest
-    needs: ci
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v2
-      -
-        name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.19'
-      -
-        name: Build
-        id: build
-        run: make artifacts
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    needs: create_release
+    permissions:
+      id-token: write
+      contents: write
+    uses: smallstep/workflows/.github/workflows/docker-buildx-push.yml@main
+    with:
+      platforms: linux/amd64,linux/arm64
+      tags: ${{ needs.create_release.outputs.docker_tags }}
+      docker_image: smallstep/step-issuer
+      docker_file: Dockerfile
+    secrets: inherit
+
