@@ -14,10 +14,13 @@ instead of Let's Encrypt or another public CA.
 In this guide, we assume that you have a Kubernetes environment
 with `cert-manager` v1.0.0 or higher installed.
 
-From there, the general install process is:
+### Overview
+
+The general install process is:
 * Install `step-ca`
-* Install and configure `step-issuer`
-* Test it out by creating your first certificate!
+* Install `step-issuer`
+* Generate and install `step-issuer` configuration
+* Create your first certificate!
 
 ### 1. Install `step-ca`
 
@@ -43,7 +46,7 @@ or use a [Certificate Manager](https://smallstep.com/certificate-manager/) cloud
 Finally, we need to install `step-issuer`.
 The easiest way to install it is via Helm:
 
-```sg
+```sh
 helm install step-issuer smallstep/step-issuer
 ```
 
@@ -122,6 +125,8 @@ we will need the following configuration information from our CA:
   ```sh
   $ CA_PROVISIONER_NAME=admin
   $ CA_PROVISIONER_KID=$(kubectl get -o jsonpath="{.data['ca\.json']}" configmaps/step-certificates-config | jq -r .authority.provisioners[0].key.kid)
+  $ echo $CA_PROVISIONER_KID
+  MXxpNphrheA80gO5uUbGZ7_RdaXU8KrmKT0fVL181L8
   ```
 
   Fianlly, we need the password to decrypt the provisioner private key, this is
@@ -147,6 +152,8 @@ To recap, we got:
 
 ### Configure `step-issuer`
 
+Now let's generate the `StepIssuer` resource.
+
 ```sh
 $ cat <<EOF > step-issuer.yaml
 ---
@@ -171,7 +178,7 @@ spec:
 EOF
 ```
 
-Now, let's apply our configuration:
+Finally, let's apply our configuration:
 
 ```sh
 $ kubectl apply -f step-issuer.yaml
@@ -237,13 +244,15 @@ We are almost ready to create our CertificateRequest YAML, we only need to
 encode using base64 our new CSR:
 
 ```sh
-$ cat internal.csr | base64
+$ CSR=$(cat internal.csr | base64)
+$ echo $CSR
 LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQkVEQ0J0d0lCQURBaE1SOHdIUVlEVlFRREV4WnBiblJsY201aGJDNXpiV0ZzYkhOMFpYQXVZMjl0TUZrdwpFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVdZYU9lcGhGZmh2ZlN5djdob1BPcEtBOEl3U0JCZlRWCnhMVzNST1lHUDFNNUR1RkU4TkZTWUlDRTJIdzd4ZFA5b2FTeSt2NURvdTVLWk5yNTNEMi80S0EwTURJR0NTcUcKU0liM0RRRUpEakVsTUNNd0lRWURWUjBSQkJvd0dJSVdhVzUwWlhKdVlXd3VjMjFoYkd4emRHVndMbU52YlRBSwpCZ2dxaGtqT1BRUURBZ05JQURCRkFpQXFTRHJKMjltSzVRTTJXRUw1bXRXVnQ5Rlp0cEJXYVBXVVdRTnV2SEpsClpBSWhBUDk1T1BHa0NabkRpTHh5ZHdQaWVjdHVlK2M0SHBVd2RhYU40Sm1FMWZ5aAotLS0tLUVORCBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K
 ```
 
 And put everything together:
 
-```yaml
+```sh
+$ cat <<EOF > csr.yaml
 apiVersion: cert-manager.io/v1
 kind: CertificateRequest
 metadata:
@@ -251,7 +260,7 @@ metadata:
   namespace: default
 spec:
   # The base64 encoded version of the certificate request in PEM format.
-  request: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQkVEQ0J0d0lCQURBaE1SOHdIUVlEVlFRREV4WnBiblJsY201aGJDNXpiV0ZzYkhOMFpYQXVZMjl0TUZrdwpFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVdZYU9lcGhGZmh2ZlN5djdob1BPcEtBOEl3U0JCZlRWCnhMVzNST1lHUDFNNUR1RkU4TkZTWUlDRTJIdzd4ZFA5b2FTeSt2NURvdTVLWk5yNTNEMi80S0EwTURJR0NTcUcKU0liM0RRRUpEakVsTUNNd0lRWURWUjBSQkJvd0dJSVdhVzUwWlhKdVlXd3VjMjFoYkd4emRHVndMbU52YlRBSwpCZ2dxaGtqT1BRUURBZ05JQURCRkFpQXFTRHJKMjltSzVRTTJXRUw1bXRXVnQ5Rlp0cEJXYVBXVVdRTnV2SEpsClpBSWhBUDk1T1BHa0NabkRpTHh5ZHdQaWVjdHVlK2M0SHBVd2RhYU40Sm1FMWZ5aAotLS0tLUVORCBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0K
+  request: $CSR
   # The duration of the certificate
   duration: 24h
   # If the certificate will be a CA or not.
@@ -263,12 +272,13 @@ spec:
     group: certmanager.step.sm
     kind: StepIssuer
     name: step-issuer
+EOF
 ```
 
 We apply it using kubectl:
 
 ```sh
-$ kubectl apply -f config/samples/certificaterequest.yaml
+$ kubectl apply -f csr.yaml
 certificaterequest.cert-manager.io/internal-smallstep-com configured
 ```
 
@@ -295,13 +305,15 @@ status:
 
 ### Using the Certificate resource
 
-Before supporting CertificateRequest, cert-manager supported the resource
-Certificate, this allows you to create TLS certificates providing only X.509
-properties like the common name, DNS or IP addresses SANs. Cert Manager now
-provides a method to support Certificate resources using CertificateRequest
-controllers like Step Issuer.
+Before supporting `CertificateRequest`,
+cert-manager supported the resource `Certificate`.
+This allows you to create TLS certificates providing only X.509 properties
+like the common name, DNS or IP addresses SANs.
+Cert Manager now provides a method to support `Certificate` resources
+using `CertificateRequest` controllers
+such as step-issuer.
 
-The YAML for a Certificate resource looks like:
+The YAML for a `Certificate` resource looks like:
 
 ```yaml
 apiVersion: cert-manager.io/v1
@@ -332,7 +344,7 @@ spec:
     name: step-issuer
 ```
 
-To apply the certificate resource you just need to run:
+To apply the `Certificate` resource, run:
 
 ```sh
 $ kubectl apply -f config/samples/certificate.yaml
@@ -392,11 +404,42 @@ signing. If using an older version of cert-manager (pre v1.3), you can disable
 this check by supplying the command line flag `-disable-approval-check` to the
 Issuer Deployment.
 
+### Local development
+
+To run `step-issuer` locally, you can use a [Kind](https://kind.sigs.k8s.io/) cluster. Be sure to create a cluster with at least two workers:
+
+```sh
+$ cat <<EOF > kind.yaml
+# three node (two workers) cluster config
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+EOF
+$ kind create cluster --config kind.yaml
+Creating cluster "kind" ...
+ ✓ Ensuring node image (kindest/node:v1.25.3) 🖼
+ ✓ Preparing nodes 📦 📦 📦
+ ✓ Writing configuration 📜
+ ✓ Starting control-plane 🕹️
+ ✓ Installing CNI 🔌
+ ✓ Installing StorageClass 💾
+ ✓ Joining worker nodes 🚜
+Set kubectl context to "kind-kind"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-kind
+
+Not sure what to do next? 😅  Check out https://kind.sigs.k8s.io/docs/user/quick-start/
+```
 
 ### Installing from Source
 
-Alternatively, to install `step-issuer` from this repo, run `make deploy`.
-These are the individual steps for a manual installation:
+The `make deploy` recipe will install `step-issuer` manually from this repo.
+
+These are the individual steps:
 
 First we install the CRDs:
 
