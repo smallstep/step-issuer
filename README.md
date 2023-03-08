@@ -150,8 +150,6 @@ To recap, we got:
 * And the provisioner password secret `step-certificates-provisioner-password`
   and key `password`
 
-### Configure `step-issuer`
-
 Now let's generate the `StepIssuer` resource.
 
 ```sh
@@ -178,7 +176,7 @@ spec:
 EOF
 ```
 
-Finally, let's apply our configuration:
+Finally, we'll apply our configuration:
 
 ```sh
 $ kubectl apply -f step-issuer.yaml
@@ -201,7 +199,8 @@ status:
 ```
 
 Your `StepIssuer` is ready to sign certificates.
-### Creating our first `Certificate`
+
+### 4. Create your first `Certificate`
 
 Step Issuer has a controller watching for CertificateRequest resources, when one
 is created, the controller checks that it belongs to it, looking for the group
@@ -301,7 +300,9 @@ status:
     type: Ready
 ```
 
-**Now you are ready to use the TLS certificate in your app.**
+**Now you are ready to use the TLS certificate in your app. Happy signing 🎉**
+
+## Notes
 
 ### Using the Certificate resource
 
@@ -393,9 +394,6 @@ metadata:
 type: kubernetes.io/tls
 ```
 
-**Happy signing 🎉**
-
-## Notes
 ### Disabling Approval Check
 
 `StepIssuer` will wait for `CertificateRequest`s to have an [approved condition
