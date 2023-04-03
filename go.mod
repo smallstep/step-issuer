@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/cert-manager/cert-manager v1.11.0
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.2.4
 	github.com/smallstep/certificates v0.23.2
 	k8s.io/api v0.26.3
 	k8s.io/apimachinery v0.26.3
