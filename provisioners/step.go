@@ -121,7 +121,7 @@ func (s *Step) createIdentityCertificate() error {
 
 // Sign sends the certificate requests to the Step CA and returns the signed
 // certificate.
-func (s *Step) Sign(ctx context.Context, cr *certmanager.CertificateRequest) ([]byte, []byte, error) {
+func (s *Step) Sign(_ context.Context, cr *certmanager.CertificateRequest) ([]byte, []byte, error) {
 	// Get root certificate(s)
 	roots, err := s.provisioner.Roots()
 	if err != nil {
