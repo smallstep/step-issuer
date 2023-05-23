@@ -80,7 +80,7 @@ endif
 # Test
 #########################################
 
-test: fmt manifests
+test:
 	$Q go test ./api/... ./controllers/... -coverprofile cover.out
 
 .PHONY: test
