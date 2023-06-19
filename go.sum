@@ -167,8 +167,8 @@ github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QH
 github.com/census-instrumentation/opencensus-proto v0.2.0/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/census-instrumentation/opencensus-proto v0.3.0/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
-github.com/cert-manager/cert-manager v1.12.1 h1:QA8/diGdInzBRhqiyTITPC+wI9FaXbgOAAT3Dwe9KZE=
-github.com/cert-manager/cert-manager v1.12.1/go.mod h1:ql0msU88JCcQSceN+PFjEY8U+AMe13y06vO2klJk8bs=
+github.com/cert-manager/cert-manager v1.12.2 h1:lJ7Xn0VhmBA4uOZb5dlSZzepu38ez73okOqgE24x8YM=
+github.com/cert-manager/cert-manager v1.12.2/go.mod h1:ql0msU88JCcQSceN+PFjEY8U+AMe13y06vO2klJk8bs=
 github.com/certifi/gocertifi v0.0.0-20191021191039-0944d244cd40/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/certifi/gocertifi v0.0.0-20200922220541-2c3bb06c6054/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
