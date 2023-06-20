@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: smallstep/workflows/.github/workflows/goCI.yml@main
+    uses: smallstep/workflows/.github/workflows/goCI.yml@max/test
     with:
       only-latest-golang: false
       run-codeql: true
