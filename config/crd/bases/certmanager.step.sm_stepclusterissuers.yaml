@@ -81,6 +81,7 @@ spec:
                 description: URL is the base URL for the step certificates instance.
                 type: string
             required:
+            - caBundle
             - provisioner
             - url
             type: object

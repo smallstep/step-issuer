@@ -40,8 +40,7 @@ type StepClusterIssuerSpec struct {
 	// CABundle is a base64 encoded TLS certificate used to verify connections
 	// to the step certificates server. If not set the system root certificates
 	// are used to validate the TLS connection.
-	// +optional
-	CABundle []byte `json:"caBundle,omitempty"`
+	CABundle []byte `json:"caBundle"`
 }
 
 // StepClusterIssuerStatus defines the observed state of StepClusterIssuer
