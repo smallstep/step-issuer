@@ -21,16 +21,17 @@ var collection = new(sync.Map)
 // requests using step certificates.
 type Step struct {
 	name        string
+	caBundle    []byte
 	provisioner *ca.Provisioner
 }
 
 // NewFromStepIssuer returns a new Step provisioner, configured with the information in the
 // given issuer.
 func NewFromStepIssuer(iss *api.StepIssuer, password []byte) (*Step, error) {
-	var options []ca.ClientOption
-	if len(iss.Spec.CABundle) > 0 {
-		options = append(options, ca.WithCABundle(iss.Spec.CABundle))
+	options := []ca.ClientOption{
+		ca.WithCABundle(iss.Spec.CABundle),
 	}
+
 	provisioner, err := ca.NewProvisioner(iss.Spec.Provisioner.Name, iss.Spec.Provisioner.KeyID, iss.Spec.URL, password, options...)
 	if err != nil {
 		return nil, err
@@ -38,26 +39,18 @@ func NewFromStepIssuer(iss *api.StepIssuer, password []byte) (*Step, error) {
 
 	p := &Step{
 		name:        iss.Name + "." + iss.Namespace,
+		caBundle:    iss.Spec.CABundle,
 		provisioner: provisioner,
-	}
-
-	// Request identity certificate if required.
-	if version, err := provisioner.Version(); err == nil {
-		if version.RequireClientAuthentication {
-			if err := p.createIdentityCertificate(); err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	return p, nil
 }
 
 func NewFromStepClusterIssuer(iss *api.StepClusterIssuer, password []byte) (*Step, error) {
-	var options []ca.ClientOption
-	if len(iss.Spec.CABundle) > 0 {
-		options = append(options, ca.WithCABundle(iss.Spec.CABundle))
+	options := []ca.ClientOption{
+		ca.WithCABundle(iss.Spec.CABundle),
 	}
+
 	provisioner, err := ca.NewProvisioner(iss.Spec.Provisioner.Name, iss.Spec.Provisioner.KeyID, iss.Spec.URL, password, options...)
 	if err != nil {
 		return nil, err
@@ -65,16 +58,8 @@ func NewFromStepClusterIssuer(iss *api.StepClusterIssuer, password []byte) (*Ste
 
 	p := &Step{
 		name:        iss.Name + "." + iss.Namespace,
+		caBundle:    iss.Spec.CABundle,
 		provisioner: provisioner,
-	}
-
-	// Request identity certificate if required.
-	if version, err := provisioner.Version(); err == nil {
-		if version.RequireClientAuthentication {
-			if err := p.createIdentityCertificate(); err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	return p, nil
@@ -95,45 +80,9 @@ func Store(namespacedName types.NamespacedName, provisioner *Step) {
 	collection.Store(namespacedName, provisioner)
 }
 
-func (s *Step) createIdentityCertificate() error {
-	csr, pk, err := ca.CreateCertificateRequest(s.name)
-	if err != nil {
-		return err
-	}
-	token, err := s.provisioner.Token(s.name)
-	if err != nil {
-		return err
-	}
-	resp, err := s.provisioner.Sign(&capi.SignRequest{
-		CsrPEM: *csr,
-		OTT:    token,
-	})
-	if err != nil {
-		return err
-	}
-	tr, err := s.provisioner.Client.Transport(context.Background(), resp, pk)
-	if err != nil {
-		return err
-	}
-	s.provisioner.Client.SetTransport(tr)
-	return nil
-}
-
 // Sign sends the certificate requests to the Step CA and returns the signed
 // certificate.
 func (s *Step) Sign(_ context.Context, cr *certmanager.CertificateRequest) ([]byte, []byte, error) {
-	// Get root certificate(s)
-	roots, err := s.provisioner.Roots()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Encode root certificates
-	caPem, err := encodeX509(roots.Certificates...)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	// decode and check certificate request
 	csr, err := decodeCSR(cr.Spec.Request)
 	if err != nil {
@@ -180,7 +129,7 @@ func (s *Step) Sign(_ context.Context, cr *certmanager.CertificateRequest) ([]by
 	if err != nil {
 		return nil, nil, err
 	}
-	return chainPem, caPem, nil
+	return chainPem, s.caBundle, nil
 }
 
 // decodeCSR decodes a certificate request in PEM format and returns the

@@ -87,7 +87,6 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Initialize and store the provisioner
-	//nolint:contextcheck // legacy
 	p, err := provisioners.NewFromStepClusterIssuer(iss, password)
 	if err != nil {
 		log.Error(err, "failed to initialize provisioner")
@@ -111,6 +110,8 @@ func validateStepClusterIssuerSpec(s api.StepClusterIssuerSpec) error {
 	switch {
 	case s.URL == "":
 		return fmt.Errorf("spec.url cannot be empty")
+	case len(s.CABundle) == 0:
+		return fmt.Errorf("spec.caBundle cannot be empty")
 	case s.Provisioner.Name == "":
 		return fmt.Errorf("spec.provisioner.name cannot be empty")
 	case s.Provisioner.KeyID == "":
