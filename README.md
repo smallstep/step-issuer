@@ -88,7 +88,7 @@ we will need the following configuration information from our CA:
     For `step-issuer`, we will Base64-encode this PEM block:
 
     ```sh
-    $ CA_ROOT_B64=$(kubectl get -o jsonpath="{.data['root_ca\.crt']}" configmaps/step-certificates-certs | base64)
+    $ CA_ROOT_B64=$(kubectl get -o jsonpath="{.data['root_ca\.crt']}" configmaps/step-certificates-certs | step base64)
     $ echo $CA_ROOT_B64
     LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJpekNDQVRHZ0F3SUJBZ0lRTytFQWg4eS8wVjlQMFhwSHJWajVOVEFLQmdncWhrak9QUVFEQWpBa01TSXcKSUFZRFZRUURFeGxUZEdWd0lFTmxjblJwWm1sallYUmxjeUJTYjI5MElFTkJNQjRYRFRFNU1EZ3hNekU1TVRVdwpNbG9YRFRJNU1EZ3hNREU1TVRVd01sb3dKREVpTUNBR0ExVUVBeE1aVTNSbGNDQkRaWEowYVdacFkyRjBaWE1nClVtOXZkQ0JEUVRCWk1CTUdCeXFHU000OUFnRUdDQ3FHU000OUF3RUhBMElBQkFNVkw3VzBQbTNvSlVmSTR3WGQKa2xERW5uNVhTbWo4NlgwYW1DQTBnY08xdElUUG1DVzNCcGU0cE9vV1V2WlZlUWRvU2NxN3pua1V0Mi9HMnQxTgo3MWlqUlRCRE1BNEdBMVVkRHdFQi93UUVBd0lCQmpBU0JnTlZIUk1CQWY4RUNEQUdBUUgvQWdFQk1CMEdBMVVkCkRnUVdCQlJ1Y1ByVm5QdlpOMHI0QVU5TGcyL2VCcng3a2pBS0JnZ3Foa2pPUFFRREFnTklBREJGQWlCUlJBdGsKNXpMY0doQ2FobVBuVzIwZExpdEMzRVdNaVE0bERwN2FFeitFUEFJaEFJOWZWczVxb0l0bVQ4anA2WktVNVEydQphRFBrOGsyQ25OMjdyRnNZV3VwTAotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
     ```
