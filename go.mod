@@ -3,7 +3,7 @@ module github.com/smallstep/step-issuer
 go 1.19
 
 require (
-	github.com/cert-manager/cert-manager v1.13.0
+	github.com/cert-manager/cert-manager v1.13.1
 	github.com/go-logr/logr v1.2.4
 	github.com/smallstep/certificates v0.25.0
 	k8s.io/api v0.28.2
@@ -32,7 +32,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/emicklei/go-restful/v3 v3.10.2 // indirect
+	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
