@@ -96,9 +96,16 @@ GOFLAGS := CGO_ENABLED=0
 build: $(PREFIX)bin/$(BINNAME)
 	@echo "Build Complete!"
 
+build-fips: $(PREFIX)bin/$(BINNAME).fips
+	@echo "Build Complete!"
+
 $(PREFIX)bin/$(BINNAME): generate $(call rwildcard,*.go)
 	$Q mkdir -p $(@D)
-	$Q $(GOOS_OVERRIDE) $(GOFLAGS) go build -v -o $(PREFIX)bin/$(BINNAME) $(LDFLAGS) $(PKG)
+	$Q $(GOOS_OVERRIDE) $(GOFLAGS) GOEXPERIMENT="boringcrypto" go build -v -o $@ $(LDFLAGS) $(PKG)
+
+$(PREFIX)bin/$(BINNAME).fips: generate $(call rwildcard,*.go)
+	$Q mkdir -p $(@D)
+	$Q $(GOOS_OVERRIDE) $(GOFLAGS) GOEXPERIMENT="boringcrypto" go build -v -o $@ $(LDFLAGS) $(PKG)
 
 #########################################
 # Generate

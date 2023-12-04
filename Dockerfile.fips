@@ -1,0 +1,18 @@
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM golang:alpine AS builder
+
+RUN mkdir /src
+WORKDIR /src
+COPY . .
+
+RUN apk add --no-cache make git curl && \
+	make CGO_ENABLED=0 V=1 build-fips
+
+FROM smallstep/alpine-fips
+
+WORKDIR /app
+RUN chown -R nonroot.nonroot /app/
+USER nonroot
+COPY --from=builder /src/bin/manager.fips manager
+ENTRYPOINT ["/app/manager"]
