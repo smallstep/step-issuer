@@ -58,6 +58,6 @@ jobs:
       platforms: linux/amd64,linux/arm64
       tags: ${{ needs.create_release.outputs.docker_tags }}
       docker_image: smallstep/step-issuer
-      docker_file: Dockerfile
+      docker_file: docker/Dockerfile
     secrets: inherit
 
