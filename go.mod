@@ -10,7 +10,7 @@ require (
 	k8s.io/apimachinery v0.29.1
 	k8s.io/client-go v0.29.1
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
-	sigs.k8s.io/controller-runtime v0.16.3
+	sigs.k8s.io/controller-runtime v0.17.0
 )
 
 require (
@@ -32,14 +32,14 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
-	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/evanphx/json-patch/v5 v5.8.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/go-logr/zapr v1.2.4 // indirect
+	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
@@ -74,7 +74,7 @@ require (
 	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -83,10 +83,10 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/newrelic/go-agent/v3 v3.28.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.16.0 // indirect
-	github.com/prometheus/client_model v0.4.0 // indirect
-	github.com/prometheus/common v0.44.0 // indirect
-	github.com/prometheus/procfs v0.10.1 // indirect
+	github.com/prometheus/client_golang v1.18.0 // indirect
+	github.com/prometheus/client_model v0.5.0 // indirect
+	github.com/prometheus/common v0.45.0 // indirect
+	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -102,17 +102,17 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/urfave/cli v1.22.14 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.etcd.io/bbolt v1.3.7 // indirect
+	go.etcd.io/bbolt v1.3.8 // indirect
 	go.step.sm/cli-utils v0.8.0 // indirect
 	go.step.sm/crypto v0.38.0 // indirect
 	go.step.sm/linkedca v0.20.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.25.0 // indirect
+	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
@@ -125,13 +125,13 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.28.3 // indirect
-	k8s.io/component-base v0.28.3 // indirect
+	k8s.io/apiextensions-apiserver v0.29.0 // indirect
+	k8s.io/component-base v0.29.0 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kube-aggregator v0.28.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	sigs.k8s.io/gateway-api v0.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )
