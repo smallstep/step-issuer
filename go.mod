@@ -6,7 +6,7 @@ require (
 	github.com/cert-manager/cert-manager v1.13.3
 	github.com/go-logr/logr v1.4.1
 	github.com/smallstep/certificates v0.25.2
-	k8s.io/api v0.29.0
+	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
 	k8s.io/client-go v0.29.0
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
