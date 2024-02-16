@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.10.0
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: stepissuers.certmanager.step.sm
 spec:
   group: certmanager.step.sm
@@ -21,14 +20,19 @@ spec:
         description: StepIssuer is the Schema for the stepissuers API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -36,9 +40,10 @@ spec:
             description: StepIssuerSpec defines the desired state of StepIssuer
             properties:
               caBundle:
-                description: CABundle is a base64 encoded TLS certificate used to
-                  verify connections to the step certificates server. If not set the
-                  system root certificates are used to validate the TLS connection.
+                description: |-
+                  CABundle is a base64 encoded TLS certificate used to verify connections
+                  to the step certificates server. If not set the system root certificates
+                  are used to validate the TLS connection.
                 format: byte
                 type: string
               provisioner:
@@ -52,9 +57,9 @@ spec:
                     description: Names is the name of the JWK provisioner.
                     type: string
                   passwordRef:
-                    description: PasswordRef is a reference to a Secret containing
-                      the provisioner password used to decrypt the provisioner private
-                      key.
+                    description: |-
+                      PasswordRef is a reference to a Secret containing the provisioner
+                      password used to decrypt the provisioner private key.
                     properties:
                       key:
                         description: The key of the secret to select from. Must be
@@ -89,17 +94,20 @@ spec:
                     for the step issuer.
                   properties:
                     lastTransitionTime:
-                      description: LastTransitionTime is the timestamp corresponding
-                        to the last status change of this condition.
+                      description: |-
+                        LastTransitionTime is the timestamp corresponding to the last status
+                        change of this condition.
                       format: date-time
                       type: string
                     message:
-                      description: Message is a human readable description of the
-                        details of the last transition, complementing reason.
+                      description: |-
+                        Message is a human readable description of the details of the last
+                        transition, complementing reason.
                       type: string
                     reason:
-                      description: Reason is a brief machine readable explanation
-                        for the condition's last transition.
+                      description: |-
+                        Reason is a brief machine readable explanation for the condition's last
+                        transition.
                       type: string
                     status:
                       allOf:
