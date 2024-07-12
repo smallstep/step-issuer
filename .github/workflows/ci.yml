@@ -8,6 +8,9 @@ on:
     - "master"
   pull_request:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -15,6 +18,10 @@ concurrency:
 
 jobs:
   ci:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: smallstep/workflows/.github/workflows/goCI.yml@main
     with:
       only-latest-golang: false
