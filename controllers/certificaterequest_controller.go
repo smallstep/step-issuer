@@ -77,15 +77,14 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// If CertificateRequest has been denied, mark the CertificateRequest as
 	// Ready=Denied and set FailureTime if not already.
 	if apiutil.CertificateRequestIsDenied(cr) {
-		log.V(4).Info("CertificateRequest has been denied yet. Marking as failed.")
+		log.V(4).Info("CertificateRequest has been denied. Marking as failed.")
 
 		if cr.Status.FailureTime == nil {
 			nowTime := metav1.NewTime(r.Clock.Now())
 			cr.Status.FailureTime = &nowTime
 		}
 
-		message := "The CertificateRequest was denied by an approval controller"
-		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonDenied, message)
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonDenied, "The CertificateRequest was denied by an approval controller")
 	}
 
 	if r.CheckApprovedCondition {
