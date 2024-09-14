@@ -9,6 +9,7 @@ on:
 jobs:
   ci:
     uses: smallstep/step-issuer/.github/workflows/ci.yml@master
+    secrets: inherit
 
   create_release:
     name: Create Release
