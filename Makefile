@@ -116,7 +116,7 @@ manifests: controller-gen
 # download controller-gen if necessary
 controller-gen:
 ifeq (, $(shell which controller-gen))
-	$Q go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.14.0
+	$Q go install sigs.k8s.io/controller-tools/cmd/controller-gen
 CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
