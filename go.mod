@@ -1,7 +1,6 @@
 module github.com/smallstep/step-issuer
 
-go 1.22.0
-toolchain go1.23.6
+go 1.23.6
 
 require (
 	github.com/cert-manager/cert-manager v1.17.1
