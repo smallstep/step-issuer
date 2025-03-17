@@ -1,6 +1,7 @@
 module github.com/smallstep/step-issuer
 
 go 1.23.7
+toolchain go1.24.1
 
 require (
 	github.com/cert-manager/cert-manager v1.17.1
@@ -8,7 +9,7 @@ require (
 	github.com/smallstep/certificates v0.28.2
 	k8s.io/api v0.32.3
 	k8s.io/apimachinery v0.32.3
-	k8s.io/client-go v0.32.2
+	k8s.io/client-go v0.32.3
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	sigs.k8s.io/controller-runtime v0.20.3
 	sigs.k8s.io/controller-tools v0.17.2
