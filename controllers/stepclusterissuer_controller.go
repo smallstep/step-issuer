@@ -91,7 +91,7 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	//Verify that the CABundle is in x509 PEM format
 	//If not then covert it over to PEM x509 format
 	if !isPemFormat(iss.Spec) {
-		r.convertToPemFormat(iss.Spec, req)
+		iss.Spec.CABundle = r.convertToPemFormat(iss.Spec, req)
 	}
 
 	// Initialize and store the provisioner
@@ -144,7 +144,7 @@ func isPemFormat(iss api.StepClusterIssuerSpec) bool {
 	return true
 }
 
-func (r *StepClusterIssuerReconciler) convertToPemFormat(iss api.StepClusterIssuerSpec, req ctrl.Request) {
+func (r *StepClusterIssuerReconciler) convertToPemFormat(iss api.StepClusterIssuerSpec, req ctrl.Request) []byte {
 
 	log := r.Log.WithValues("stepclusterissuer", req.NamespacedName)
 
@@ -160,7 +160,5 @@ func (r *StepClusterIssuerReconciler) convertToPemFormat(iss api.StepClusterIssu
 		Bytes: derBytes,      // The DER-encoded certificate data
 	}
 
-	encodedCert := pem.EncodeToMemory(pemBlock)
-	iss.CABundle = encodedCert
-
+	return pem.EncodeToMemory(pemBlock)
 }
