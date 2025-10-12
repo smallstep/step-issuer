@@ -134,18 +134,11 @@ func validateStepClusterIssuerSpec(s api.StepClusterIssuerSpec) error {
 }
 
 func isPemFormat(iss api.StepClusterIssuerSpec) bool {
-
 	//Validate the CABundle is in the x509 PEM format
-	pool := x509.NewCertPool()
-	if !pool.AppendCertsFromPEM(iss.CABundle) {
-		return false
-	}
-
-	return true
+	return x509.NewCertPool().AppendCertsFromPEM(iss.CABundle)
 }
 
 func (r *StepClusterIssuerReconciler) convertToPemFormat(iss api.StepClusterIssuerSpec, req ctrl.Request) []byte {
-
 	log := r.Log.WithValues("stepclusterissuer", req.NamespacedName)
 
 	cert, err := x509.ParseCertificate(iss.CABundle)
@@ -156,8 +149,8 @@ func (r *StepClusterIssuerReconciler) convertToPemFormat(iss api.StepClusterIssu
 	derBytes := cert.Raw
 
 	pemBlock := &pem.Block{
-		Type:  "CERTIFICATE", // The type of the PEM block (e.g., "CERTIFICATE", "PRIVATE KEY")
-		Bytes: derBytes,      // The DER-encoded certificate data
+		Type:  "CERTIFICATE",
+		Bytes: derBytes,
 	}
 
 	return pem.EncodeToMemory(pemBlock)
