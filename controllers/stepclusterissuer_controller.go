@@ -17,6 +17,8 @@ package controllers
 
 import (
 	"context"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -86,6 +88,12 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	//Verify that the CABundle is in x509 PEM format
+	//If not then covert it over to PEM x509 format
+	if !isPemFormat(iss.Spec) {
+		r.convertToPemFormat(iss.Spec, req)
+	}
+
 	// Initialize and store the provisioner
 	p, err := provisioners.NewFromStepClusterIssuer(iss, password)
 	if err != nil {
@@ -123,4 +131,36 @@ func validateStepClusterIssuerSpec(s api.StepClusterIssuerSpec) error {
 	default:
 		return nil
 	}
+}
+
+func isPemFormat(iss api.StepClusterIssuerSpec) bool {
+
+	//Validate the CABundle is in the x509 PEM format
+	pool := x509.NewCertPool()
+	if !pool.AppendCertsFromPEM(iss.CABundle) {
+		return false
+	}
+
+	return true
+}
+
+func (r *StepClusterIssuerReconciler) convertToPemFormat(iss api.StepClusterIssuerSpec, req ctrl.Request) {
+
+	log := r.Log.WithValues("stepclusterissuer", req.NamespacedName)
+
+	cert, err := x509.ParseCertificate(iss.CABundle)
+	if err != nil {
+		log.Error(err, "Failed to parse caBundle  ")
+	}
+
+	derBytes := cert.Raw
+
+	pemBlock := &pem.Block{
+		Type:  "CERTIFICATE", // The type of the PEM block (e.g., "CERTIFICATE", "PRIVATE KEY")
+		Bytes: derBytes,      // The DER-encoded certificate data
+	}
+
+	encodedCert := pem.EncodeToMemory(pemBlock)
+	iss.CABundle = encodedCert
+
 }
