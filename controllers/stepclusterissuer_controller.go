@@ -90,7 +90,7 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	//Verify that the CABundle is in x509 PEM format
 	//If not then covert it over to PEM x509 format
-	if !isPemFormat(iss.Spec) {
+	if !isPemFormatStepClusterIssuer(iss.Spec) {
 		iss.Spec.CABundle = r.convertToPemFormat(iss.Spec, req)
 	}
 
@@ -133,7 +133,7 @@ func validateStepClusterIssuerSpec(s api.StepClusterIssuerSpec) error {
 	}
 }
 
-func isPemFormat(iss api.StepClusterIssuerSpec) bool {
+func isPemFormatStepClusterIssuer(iss api.StepClusterIssuerSpec) bool {
 	//Validate the CABundle is in the x509 PEM format
 	return x509.NewCertPool().AppendCertsFromPEM(iss.CABundle)
 }
