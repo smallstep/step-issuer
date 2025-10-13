@@ -143,7 +143,8 @@ func (r *StepIssuerReconciler) convertToPemFormat(iss api.StepIssuerSpec, req ct
 
 	cert, err := x509.ParseCertificate(iss.CABundle)
 	if err != nil {
-		log.Error(err, "Failed to parse caBundle  ")
+		log.Error(err, "Failed to parse caBundle in the Step Issuer spec:CABundle field ")
+		return []byte{}
 	}
 
 	derBytes := cert.Raw
