@@ -3,7 +3,7 @@ module github.com/smallstep/step-issuer
 go 1.24.0
 
 require (
-	github.com/cert-manager/cert-manager v1.18.2
+	github.com/cert-manager/cert-manager v1.18.5
 	github.com/go-logr/logr v1.4.3
 	github.com/smallstep/certificates v0.29.0
 	k8s.io/api v0.34.3
