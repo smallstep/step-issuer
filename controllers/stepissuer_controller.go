@@ -88,10 +88,14 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	//Verify that the CABundle is in x509 PEM format
-	//If not then covert it over to PEM x509 format
-	if !isPemFormatStepIssuer(iss.Spec) {
-		iss.Spec.CABundle = r.convertToPemFormat(iss.Spec, req)
+	//Verify that the CABundle is in x509 PEM format If not then covert it over
+	//to PEM x509 format
+	if !isPEMFormat(iss.Spec.CABundle) {
+		caBundle, err := convertToPemFormat(iss.Spec.CABundle)
+		if err != nil {
+			log.Error(err, "failed to parse caBundle in the StepIssuer spec", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
+		}
+		iss.Spec.CABundle = caBundle
 	}
 
 	// Initialize and store the provisioner
@@ -133,26 +137,18 @@ func validateStepIssuerSpec(s api.StepIssuerSpec) error {
 	}
 }
 
-func isPemFormatStepIssuer(iss api.StepIssuerSpec) bool {
-	//Validate the CABundle is in the x509 PEM format
-	return x509.NewCertPool().AppendCertsFromPEM(iss.CABundle)
+// isPEMFormat validates if the given bytes are in PEM format.
+func isPEMFormat(caBundle []byte) bool {
+	return x509.NewCertPool().AppendCertsFromPEM(caBundle)
 }
 
-func (r *StepIssuerReconciler) convertToPemFormat(iss api.StepIssuerSpec, req ctrl.Request) []byte {
-	log := r.Log.WithValues("stepissuer", req.NamespacedName)
-
-	cert, err := x509.ParseCertificate(iss.CABundle)
+func convertToPemFormat(caBundle []byte) ([]byte, error) {
+	cert, err := x509.ParseCertificate(caBundle)
 	if err != nil {
-		log.Error(err, "Failed to parse caBundle in the Step Issuer spec:CABundle field ")
-		return []byte{}
+		return nil, err
 	}
-
-	derBytes := cert.Raw
-
-	pemBlock := &pem.Block{
+	return pem.EncodeToMemory(&pem.Block{
 		Type:  "CERTIFICATE",
-		Bytes: derBytes,
-	}
-
-	return pem.EncodeToMemory(pemBlock)
+		Bytes: cert.Raw,
+	}), nil
 }
