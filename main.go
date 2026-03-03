@@ -83,7 +83,7 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("StepIssuer"),
 		Clock:    clock.RealClock{},
-		Recorder: mgr.GetEventRecorderFor("stepissuer-controller"),
+		Recorder: mgr.GetEventRecorderFor("stepissuer-controller"), //nolint:staticcheck,nolintlint // will be fixed later
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "StepIssuer")
 		os.Exit(1)
@@ -93,7 +93,7 @@ func main() {
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("StepClusterIssuer"),
 		Clock:    clock.RealClock{},
-		Recorder: mgr.GetEventRecorderFor("stepclusterissuer-controller"),
+		Recorder: mgr.GetEventRecorderFor("stepclusterissuer-controller"), //nolint:staticcheck,nolintlint // will be fixed later
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "StepClusterIssuer")
 		os.Exit(1)
@@ -102,7 +102,7 @@ func main() {
 	if err = (&controllers.CertificateRequestReconciler{
 		Client:                 mgr.GetClient(),
 		Log:                    ctrl.Log.WithName("controllers").WithName("CertificateRequest"),
-		Recorder:               mgr.GetEventRecorderFor("certificaterequests-controller"),
+		Recorder:               mgr.GetEventRecorderFor("certificaterequests-controller"), //nolint:staticcheck,nolintlint // will be fixed later
 		Clock:                  clock.RealClock{},
 		CheckApprovedCondition: !disableApprovedCheck,
 	}).SetupWithManager(mgr); err != nil {
