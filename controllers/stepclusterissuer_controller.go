@@ -86,6 +86,16 @@ func (r *StepClusterIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	//Verify that the CABundle is in x509 PEM format If not then covert it over
+	//to PEM x509 format.
+	if !isPEMFormat(iss.Spec.CABundle) {
+		caBundle, err := convertToPemFormat(iss.Spec.CABundle)
+		if err != nil {
+			log.Error(err, "failed to parse caBundle in the StepClusterIssuer spec", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
+		}
+		iss.Spec.CABundle = caBundle
+	}
+
 	// Initialize and store the provisioner
 	p, err := provisioners.NewFromStepClusterIssuer(iss, password)
 	if err != nil {

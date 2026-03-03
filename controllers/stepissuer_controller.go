@@ -17,6 +17,8 @@ package controllers
 
 import (
 	"context"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -86,6 +88,16 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
+	//Verify that the CABundle is in x509 PEM format If not then covert it over
+	//to PEM x509 format
+	if !isPEMFormat(iss.Spec.CABundle) {
+		caBundle, err := convertToPemFormat(iss.Spec.CABundle)
+		if err != nil {
+			log.Error(err, "failed to parse caBundle in the StepIssuer spec", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
+		}
+		iss.Spec.CABundle = caBundle
+	}
+
 	// Initialize and store the provisioner
 	p, err := provisioners.NewFromStepIssuer(iss, password)
 	if err != nil {
@@ -123,4 +135,20 @@ func validateStepIssuerSpec(s api.StepIssuerSpec) error {
 	default:
 		return nil
 	}
+}
+
+// isPEMFormat validates if the given bytes are in PEM format.
+func isPEMFormat(caBundle []byte) bool {
+	return x509.NewCertPool().AppendCertsFromPEM(caBundle)
+}
+
+func convertToPemFormat(caBundle []byte) ([]byte, error) {
+	cert, err := x509.ParseCertificate(caBundle)
+	if err != nil {
+		return nil, err
+	}
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Raw,
+	}), nil
 }
