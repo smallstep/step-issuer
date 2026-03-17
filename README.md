@@ -409,8 +409,6 @@ authentication and authorization.
   The provided manifests set `--metrics-bind-address=:8443`.
 - Metrics are served over HTTPS with authentication and authorization enabled
   by default (`--metrics-secure=true`). Use `--metrics-secure=false` for plain HTTP.
-- HTTP/2 is enabled by default. Use `--disable-http2` to disable it (mitigates
-  CVE-2023-44487 and CVE-2023-39325 at the cost of performance).
 - The `gcr.io/kubebuilder/kube-rbac-proxy` container image is no longer used.
 - RBAC resources have been renamed:
   - `proxy-role` / `proxy-rolebinding` → `metrics-auth-role` / `metrics-auth-rolebinding`

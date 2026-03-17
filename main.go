@@ -16,7 +16,6 @@ limitations under the License.
 package main
 
 import (
-	"crypto/tls"
 	"flag"
 	"os"
 
@@ -49,7 +48,6 @@ func init() {
 func main() {
 	var metricsAddr string
 	var secureMetrics bool
-	var disableHTTP2 bool
 	var enableLeaderElection bool
 	var leaderElectionID string
 	var disableApprovedCheck bool
@@ -62,8 +60,6 @@ func main() {
 		"The address the metrics endpoint binds to. Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.BoolVar(&secureMetrics, "metrics-secure", true,
 		"If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
-	flag.BoolVar(&disableHTTP2, "disable-http2", false,
-		"If set, HTTP/2 will be disabled for the metrics server, mitigating CVE-2023-44487 and CVE-2023-39325.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&leaderElectionID, "leader-election-id", "",
@@ -78,18 +74,9 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	var tlsOpts []func(*tls.Config)
-	if disableHTTP2 {
-		tlsOpts = append(tlsOpts, func(c *tls.Config) {
-			setupLog.Info("disabling http/2")
-			c.NextProtos = []string{"http/1.1"}
-		})
-	}
-
 	metricsServerOptions := metricsserver.Options{
 		BindAddress:   metricsAddr,
 		SecureServing: secureMetrics,
-		TLSOpts:       tlsOpts,
 	}
 	if secureMetrics {
 		metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
