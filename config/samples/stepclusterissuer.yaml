@@ -14,3 +14,12 @@ spec:
     passwordRef:
       name: step-certificates-provisioner-password
       key: password
+  # Optional custom header to include in signing requests.
+  # Example with file reference (e.g., JWT token from projected volume):
+  customHeader:
+    name: Authorization
+    value: "file:///etc/step-issuer/jwt-token"
+  # Example with static value:
+  # customHeader:
+  #   name: X-Custom-Auth
+  #   value: "my-static-auth-token"

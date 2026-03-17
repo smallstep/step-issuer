@@ -394,6 +394,104 @@ metadata:
 type: kubernetes.io/tls
 ```
 
+### Custom Header in Signing Requests
+
+The issuer supports an optional `customHeader` field in the Custom Resources of `StepIssuer` and `StepClusterIssuer` to inject a custom HTTP header into every signing request sent to the Step CA. This is useful when the CA sits behind an API gateway or proxy that requires a specific authentication header (e.g. a bearer token or an API key).
+
+#### Configuration
+
+Add `spec.customHeader` to your issuer manifest with two sub-fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | yes | The HTTP header name (e.g. `Authorization`, `X-Api-Key`) |
+| `value` | yes | A static string **or** a `file://` URI whose contents are read on every request |
+
+Both `name` and `value` must be non-empty; the controller will refuse to reconcile an issuer whose `customHeader` has a blank field.
+
+#### Static value
+
+Use a literal string as the header value:
+
+```yaml
+spec:
+  customHeader:
+    name: X-Custom-Auth
+    value: "my-static-token"
+```
+
+#### Dynamic value via `file://` URI
+
+Use a `file://` URI to read the value from a file at request time. The file is re-read on **every** signing request, so rotating the file content (e.g. via a [projected volume](https://kubernetes.io/docs/concepts/storage/projected-volumes/) ServiceAccount token) is automatically picked up without restarting the controller.
+
+```yaml
+spec:
+  customHeader:
+    name: Authorization
+    value: "file:///etc/step-issuer/token"
+```
+
+A typical setup mounts a projected ServiceAccount token into the pod and references it here:
+
+```yaml
+# In your Deployment
+volumes:
+  - name: jwt-token
+    projected:
+      sources:
+        - serviceAccountToken:
+            path: token
+            expirationSeconds: 3600
+            audience: my-ca-audience
+volumeMounts:
+  - name: jwt-token
+    mountPath: /etc/step-issuer
+    readOnly: true
+```
+
+```yaml
+# In the StepIssuer / StepClusterIssuer
+spec:
+  customHeader:
+    name: Authorization
+    value: "file:///etc/step-issuer/token"
+```
+
+#### Full example
+
+```yaml
+apiVersion: certmanager.step.sm/v1beta1
+kind: StepIssuer
+metadata:
+  name: step-issuer
+  namespace: default
+spec:
+  url: https://step-certificates.default.svc.cluster.local
+  caBundle: <base64-encoded-root-ca>
+  provisioner:
+    name: admin
+    kid: <provisioner-kid>
+    passwordRef:
+      name: step-certificates-provisioner-password
+      key: password
+  customHeader:
+    name: Authorization
+    value: "file:///etc/step-issuer/token"
+```
+
+The same `customHeader` field is available on `StepClusterIssuer`.
+
+#### Implementation notes
+
+The header injection is implemented as an `http.RoundTripper` decorator
+(`CustomHeaderTransport`) that wraps the TLS transport built by `ca.WithCABundle`.
+It is registered via `ca.WithTransportDecorator` so that it is compatible with
+the CA bundle transport — using `ca.WithTransport` directly would conflict with
+`ca.WithCABundle` since both methods claim exclusive ownership of the transport.
+When a `file://` value is configured, `readHeaderValue` opens and reads the file
+on every call to `RoundTrip`, meaning token rotation takes effect immediately
+without any controller restart.
+
 ### Disabling Approval Check
 
 `StepIssuer` will wait for `CertificateRequest`s to have an [approved condition
