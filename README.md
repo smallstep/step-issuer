@@ -394,6 +394,78 @@ metadata:
 type: kubernetes.io/tls
 ```
 
+## Upgrading
+
+### Migrating from kube-rbac-proxy to native metrics authentication
+
+The `kube-rbac-proxy` sidecar has been removed. The controller manager now
+serves metrics directly over HTTPS using controller-runtime's built-in
+authentication and authorization.
+
+**Breaking changes:**
+
+- The `--metrics-addr` flag has been renamed to `--metrics-bind-address`.
+- The default address changed from `:8080` (HTTP, always on) to `0` (disabled).
+  The provided manifests set `--metrics-bind-address=:8443`.
+- Metrics are served over HTTPS with authentication and authorization enabled
+  by default (`--metrics-secure=true`). Use `--metrics-secure=false` for plain HTTP.
+- HTTP/2 is enabled by default. Use `--disable-http2` to disable it (mitigates
+  CVE-2023-44487 and CVE-2023-39325 at the cost of performance).
+- The `gcr.io/kubebuilder/kube-rbac-proxy` container image is no longer used.
+- RBAC resources have been renamed:
+  - `proxy-role` / `proxy-rolebinding` → `metrics-auth-role` / `metrics-auth-rolebinding`
+  - A new `metrics-reader` ClusterRole grants `GET /metrics` access.
+
+**Steps to upgrade:**
+
+1. **Update your deployment manifests.** Replace the `kube-rbac-proxy` sidecar
+   and the `--metrics-addr` flag:
+
+   Before:
+   ```yaml
+   containers:
+   - name: kube-rbac-proxy
+     image: gcr.io/kubebuilder/kube-rbac-proxy:v0.4.0
+     args:
+     - --secure-listen-address=0.0.0.0:8443
+     - --upstream=http://127.0.0.1:8080/
+   - name: manager
+     args:
+     - --metrics-addr=127.0.0.1:8080
+   ```
+
+   After:
+   ```yaml
+   containers:
+   - name: manager
+     args:
+     - --metrics-bind-address=:8443
+     - --metrics-secure=true
+   ```
+
+2. **Update RBAC resources.** Delete the old `proxy-role` and `proxy-rolebinding`
+   resources and apply the new `metrics-auth-role`, `metrics-auth-rolebinding`,
+   and `metrics-reader` resources from `config/rbac/` or `config/samples/deployment.yaml`.
+
+3. **Grant your Prometheus scraper access to `/metrics`.** The `metrics-reader`
+   ClusterRole must be bound to your Prometheus ServiceAccount. See the commented
+   example in `config/rbac/metrics_reader_rolebinding.yaml`. For kube-prometheus-stack:
+
+   ```yaml
+   apiVersion: rbac.authorization.k8s.io/v1
+   kind: ClusterRoleBinding
+   metadata:
+     name: step-issuer-metrics-reader-rolebinding
+   roleRef:
+     apiGroup: rbac.authorization.k8s.io
+     kind: ClusterRole
+     name: step-issuer-metrics-reader
+   subjects:
+   - kind: ServiceAccount
+     name: prometheus-k8s
+     namespace: monitoring
+   ```
+
 ### Disabling Approval Check
 
 `StepIssuer` will wait for `CertificateRequest`s to have an [approved condition

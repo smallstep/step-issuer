@@ -1,0 +1,18 @@
+# Bind the metrics-reader role to the Prometheus ServiceAccount in your monitoring namespace.
+# Note: if deploying via kustomize (config/default), the namePrefix will produce
+# "step-issuer-metrics-reader" — use that name in the roleRef below.
+# See config/samples/deployment.yaml for a complete example.
+#
+# Example for kube-prometheus-stack:
+#apiVersion: rbac.authorization.k8s.io/v1
+#kind: ClusterRoleBinding
+#metadata:
+#  name: metrics-reader-rolebinding
+#roleRef:
+#  apiGroup: rbac.authorization.k8s.io
+#  kind: ClusterRole
+#  name: metrics-reader
+#subjects:
+#- kind: ServiceAccount
+#  name: prometheus-k8s
+#  namespace: monitoring
