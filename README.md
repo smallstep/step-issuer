@@ -399,16 +399,13 @@ type: kubernetes.io/tls
 ### Migrating from kube-rbac-proxy to native metrics authentication
 
 The `kube-rbac-proxy` sidecar has been removed. The controller manager now
-serves metrics directly over HTTPS using controller-runtime's built-in
-authentication and authorization.
+serves metrics directly over HTTP using controller-runtime's built-in server.
 
 **Breaking changes:**
 
 - The `--metrics-addr` flag has been renamed to `--metrics-bind-address`.
 - The default address changed from `:8080` (HTTP, always on) to `0` (disabled).
-  The provided manifests set `--metrics-bind-address=:8443`.
-- Metrics are served over HTTPS with authentication and authorization enabled
-  by default (`--metrics-secure=true`). Use `--metrics-secure=false` for plain HTTP.
+  The provided manifests set `--metrics-bind-address=:8080`.
 - The `gcr.io/kubebuilder/kube-rbac-proxy` container image is no longer used.
 - RBAC resources have been renamed:
   - `proxy-role` / `proxy-rolebinding` → `metrics-auth-role` / `metrics-auth-rolebinding`
@@ -437,8 +434,7 @@ authentication and authorization.
    containers:
    - name: manager
      args:
-     - --metrics-bind-address=:8443
-     - --metrics-secure=true
+     - --metrics-bind-address=:8080
    ```
 
 2. **Update RBAC resources.** Delete the old `proxy-role` and `proxy-rolebinding`
