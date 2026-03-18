@@ -1,0 +1,15 @@
+# This patch adds the --metrics-bind-address arg to enable the metrics endpoint
+# using HTTP on port :8080, served directly by the manager (no sidecar required).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        args:
+        - --metrics-bind-address=:8080
+        - --enable-leader-election

@@ -236,7 +236,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: step-issuer-proxy-role
+  name: step-issuer-metrics-auth-role
 rules:
 - apiGroups:
   - authentication.k8s.io
@@ -281,22 +281,47 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: step-issuer-proxy-rolebinding
+  name: step-issuer-metrics-auth-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: step-issuer-proxy-role
+  name: step-issuer-metrics-auth-role
 subjects:
 - kind: ServiceAccount
   name: default
   namespace: step-issuer-system
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: step-issuer-metrics-reader
+rules:
+- nonResourceURLs:
+  - "/metrics"
+  verbs:
+  - get
+---
+# Bind the metrics-reader role to the Prometheus ServiceAccount in your monitoring namespace.
+# Example for kube-prometheus-stack:
+#apiVersion: rbac.authorization.k8s.io/v1
+#kind: ClusterRoleBinding
+#metadata:
+#  name: step-issuer-metrics-reader-rolebinding
+#roleRef:
+#  apiGroup: rbac.authorization.k8s.io
+#  kind: ClusterRole
+#  name: step-issuer-metrics-reader
+#subjects:
+#- kind: ServiceAccount
+#  name: prometheus-k8s
+#  namespace: monitoring
+---
 apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    prometheus.io/port: "8443"
-    prometheus.io/scheme: https
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
     prometheus.io/scrape: "true"
   labels:
     control-plane: controller-manager
@@ -304,9 +329,10 @@ metadata:
   namespace: step-issuer-system
 spec:
   ports:
-  - name: https
-    port: 8443
-    targetPort: https
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
   selector:
     control-plane: controller-manager
 ---
@@ -329,17 +355,7 @@ spec:
     spec:
       containers:
       - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --logtostderr=true
-        - --v=10
-        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.4.0
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-      - args:
-        - --metrics-addr=127.0.0.1:8080
+        - --metrics-bind-address=:8080
         - --enable-leader-election
         command:
         - /manager

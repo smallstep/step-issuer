@@ -54,7 +54,8 @@ func main() {
 	opts := zap.Options{}
 	opts.BindFlags(flag.CommandLine)
 
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-bind-address", "0",
+		"The address the metrics endpoint binds to. Use :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&leaderElectionID, "leader-election-id", "",
@@ -68,9 +69,12 @@ func main() {
 	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:           scheme,
-		Metrics:          metricsserver.Options{BindAddress: metricsAddr},
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress: metricsAddr,
+		},
 		LeaderElection:   enableLeaderElection,
 		LeaderElectionID: leaderElectionID,
 	})

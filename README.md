@@ -491,6 +491,71 @@ the CA bundle transport — using `ca.WithTransport` directly would conflict wit
 When a `file://` value is configured, `readHeaderValue` opens and reads the file
 on every call to `RoundTrip`, meaning token rotation takes effect immediately
 without any controller restart.
+## Upgrading
+
+### Migrating from kube-rbac-proxy to native metrics authentication
+
+The `kube-rbac-proxy` sidecar has been removed. The controller manager now
+serves metrics directly over HTTP using controller-runtime's built-in server.
+
+**Breaking changes:**
+
+- The `--metrics-addr` flag has been renamed to `--metrics-bind-address`.
+- The default address changed from `:8080` (HTTP, always on) to `0` (disabled).
+  The provided manifests set `--metrics-bind-address=:8080`.
+- The `gcr.io/kubebuilder/kube-rbac-proxy` container image is no longer used.
+- RBAC resources have been renamed:
+  - `proxy-role` / `proxy-rolebinding` → `metrics-auth-role` / `metrics-auth-rolebinding`
+  - A new `metrics-reader` ClusterRole grants `GET /metrics` access.
+
+**Steps to upgrade:**
+
+1. **Update your deployment manifests.** Replace the `kube-rbac-proxy` sidecar
+   and the `--metrics-addr` flag:
+
+   Before:
+   ```yaml
+   containers:
+   - name: kube-rbac-proxy
+     image: gcr.io/kubebuilder/kube-rbac-proxy:v0.4.0
+     args:
+     - --secure-listen-address=0.0.0.0:8443
+     - --upstream=http://127.0.0.1:8080/
+   - name: manager
+     args:
+     - --metrics-addr=127.0.0.1:8080
+   ```
+
+   After:
+   ```yaml
+   containers:
+   - name: manager
+     args:
+     - --metrics-bind-address=:8080
+   ```
+
+2. **Update RBAC resources.** Delete the old `proxy-role` and `proxy-rolebinding`
+   resources and apply the new `metrics-auth-role`, `metrics-auth-rolebinding`,
+   and `metrics-reader` resources from `config/rbac/` or `config/samples/deployment.yaml`.
+
+3. **Grant your Prometheus scraper access to `/metrics`.** The `metrics-reader`
+   ClusterRole must be bound to your Prometheus ServiceAccount. See the commented
+   example in `config/rbac/metrics_reader_rolebinding.yaml`. For kube-prometheus-stack:
+
+   ```yaml
+   apiVersion: rbac.authorization.k8s.io/v1
+   kind: ClusterRoleBinding
+   metadata:
+     name: step-issuer-metrics-reader-rolebinding
+   roleRef:
+     apiGroup: rbac.authorization.k8s.io
+     kind: ClusterRole
+     name: step-issuer-metrics-reader
+   subjects:
+   - kind: ServiceAccount
+     name: prometheus-k8s
+     namespace: monitoring
+   ```
 
 ### Disabling Approval Check
 
