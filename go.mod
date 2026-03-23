@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/cert-manager/cert-manager v1.20.0
 	github.com/go-logr/logr v1.4.3
-	github.com/smallstep/certificates v0.30.0
+	github.com/smallstep/certificates v0.30.2
 	k8s.io/api v0.35.2
 	k8s.io/apimachinery v0.35.2
 	k8s.io/client-go v0.35.2
