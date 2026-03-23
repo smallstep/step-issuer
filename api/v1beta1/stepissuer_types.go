@@ -41,6 +41,11 @@ type StepIssuerSpec struct {
 	// to the step certificates server. If not set the system root certificates
 	// are used to validate the TLS connection.
 	CABundle []byte `json:"caBundle"`
+
+	// CustomHeader is an optional custom HTTP header to include in signing requests.
+	// The header value can be a static string or a file:// URI to read from dynamically.
+	// +optional
+	CustomHeader *CustomHeader `json:"customHeader,omitempty"`
 }
 
 // StepIssuerStatus defines the observed state of StepIssuer
@@ -95,6 +100,20 @@ type StepProvisioner struct {
 	// PasswordRef is a reference to a Secret containing the provisioner
 	// password used to decrypt the provisioner private key.
 	PasswordRef StepIssuerSecretKeySelector `json:"passwordRef"`
+}
+
+// CustomHeader represents a custom HTTP header to include in signing requests.
+type CustomHeader struct {
+	// Name is the header name (e.g., "X-Custom-Auth" or "Authorization").
+	// +kubebuilder:validation:MinLength=1
+	Name string `json:"name"`
+
+	// Value is the header value. It can be:
+	// - A static string value (e.g., "my-auth-token")
+	// - A file:// URI to read from (e.g., "file:///etc/step-issuer/token")
+	//   The file is read fresh on each signing request.
+	// +kubebuilder:validation:MinLength=1
+	Value string `json:"value"`
 }
 
 // ConditionType represents a StepIssuer condition type.

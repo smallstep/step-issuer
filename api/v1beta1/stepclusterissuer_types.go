@@ -41,6 +41,11 @@ type StepClusterIssuerSpec struct {
 	// to the step certificates server. If not set the system root certificates
 	// are used to validate the TLS connection.
 	CABundle []byte `json:"caBundle"`
+
+	// CustomHeader is an optional custom HTTP header to include in signing requests.
+	// The header value can be a static string or a file:// URI to read from dynamically.
+	// +optional
+	CustomHeader *CustomHeader `json:"customHeader,omitempty"`
 }
 
 // StepClusterIssuerStatus defines the observed state of StepClusterIssuer
