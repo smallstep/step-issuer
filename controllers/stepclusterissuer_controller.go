@@ -131,6 +131,15 @@ func validateStepClusterIssuerSpec(s api.StepClusterIssuerSpec) error {
 	case s.Provisioner.PasswordRef.Key == "":
 		return fmt.Errorf("spec.provisioner.passwordRef.key cannot be empty")
 	default:
+		// Validate custom header if present
+		if s.CustomHeader != nil {
+			if s.CustomHeader.Name == "" {
+				return fmt.Errorf("spec.customHeader.name cannot be empty")
+			}
+			if s.CustomHeader.Value == "" {
+				return fmt.Errorf("spec.customHeader.value cannot be empty")
+			}
+		}
 		return nil
 	}
 }

@@ -46,6 +46,27 @@ spec:
                   are used to validate the TLS connection.
                 format: byte
                 type: string
+              customHeader:
+                description: |-
+                  CustomHeader is an optional custom HTTP header to include in signing requests.
+                  The header value can be a static string or a file:// URI to read from dynamically.
+                properties:
+                  name:
+                    description: Name is the header name (e.g., "X-Custom-Auth" or "Authorization").
+                    minLength: 1
+                    type: string
+                  value:
+                    description: |-
+                      Value is the header value. It can be:
+                      - A static string value (e.g., "my-auth-token")
+                      - A file:// URI to read from (e.g., "file:///etc/step-issuer/token")
+                        The file is read fresh on each signing request.
+                    minLength: 1
+                    type: string
+                required:
+                - name
+                - value
+                type: object
               provisioner:
                 description: Provisioner contains the step certificates provisioner
                   configuration.
