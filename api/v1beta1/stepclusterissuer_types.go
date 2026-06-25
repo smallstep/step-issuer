@@ -97,8 +97,28 @@ type StepClusterProvisioner struct {
 	KeyID string `json:"kid"`
 
 	// PasswordRef is a reference to a Secret containing the provisioner
-	// password used to decrypt the provisioner private key.
-	PasswordRef StepClusterIssuerSecretKeySelector `json:"passwordRef"`
+	// password used to decrypt the provisioner private key. Exactly one of
+	// PasswordRef, PasswordEnv, or PasswordFile must be set.
+	// +optional
+	PasswordRef StepClusterIssuerSecretKeySelector `json:"passwordRef,omitempty"`
+
+	// PasswordEnv is the name of an environment variable, read from the
+	// step-issuer controller's own environment, that holds the provisioner
+	// password. Use this when the password is injected into the controller pod
+	// (for example by Vault Agent) instead of being stored in a Kubernetes
+	// Secret. A trailing newline is trimmed. Exactly one of PasswordRef,
+	// PasswordEnv, or PasswordFile must be set.
+	// +optional
+	PasswordEnv string `json:"passwordEnv,omitempty"`
+
+	// PasswordFile is the path to a file, read from the step-issuer controller's
+	// own filesystem, that holds the provisioner password. Use this when the
+	// password is rendered into the controller pod (for example by a Vault Agent
+	// template) instead of being stored in a Kubernetes Secret. A trailing
+	// newline is trimmed. Exactly one of PasswordRef, PasswordEnv, or
+	// PasswordFile must be set.
+	// +optional
+	PasswordFile string `json:"passwordFile,omitempty"`
 }
 
 // StepClusterIssuerCondition contains condition information for the step issuer.

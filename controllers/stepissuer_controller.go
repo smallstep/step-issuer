@@ -24,9 +24,6 @@ import (
 	"github.com/go-logr/logr"
 	api "github.com/smallstep/step-issuer/api/v1beta1"
 	"github.com/smallstep/step-issuer/provisioners"
-	core "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/utils/clock"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -65,26 +62,18 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	// Fetch the provisioner password
-	var secret core.Secret
-	secretNamespaceName := types.NamespacedName{
-		Namespace: req.Namespace,
-		Name:      iss.Spec.Provisioner.PasswordRef.Name,
-	}
-	if err := r.Client.Get(ctx, secretNamespaceName, &secret); err != nil {
-		log.Error(err, "failed to retrieve StepIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
-		if apierrors.IsNotFound(err) {
-			statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
-		} else {
-			statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "Error", "Failed to retrieve provisioner secret: %v", err)
+	// Fetch the provisioner password from the configured source: a Kubernetes
+	// Secret, an environment variable, or a file on the controller's filesystem.
+	password, notFound, err := resolveProvisionerPassword(ctx, r.Client, req.Namespace,
+		iss.Spec.Provisioner.PasswordRef.Name, iss.Spec.Provisioner.PasswordRef.Key,
+		iss.Spec.Provisioner.PasswordEnv, iss.Spec.Provisioner.PasswordFile)
+	if err != nil {
+		log.Error(err, "failed to retrieve StepIssuer provisioner password", "namespace", req.Namespace, "name", req.Name)
+		reason := "Error"
+		if notFound {
+			reason = "NotFound"
 		}
-		return ctrl.Result{}, err
-	}
-	password, ok := secret.Data[iss.Spec.Provisioner.PasswordRef.Key]
-	if !ok {
-		err := fmt.Errorf("secret %s does not contain key %s", secret.Name, iss.Spec.Provisioner.PasswordRef.Key)
-		log.Error(err, "failed to retrieve StepIssuer provisioner secret", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
-		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, "NotFound", "Failed to retrieve provisioner secret: %v", err)
+		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, reason, "Failed to retrieve provisioner password: %v", err)
 		return ctrl.Result{}, err
 	}
 
@@ -93,7 +82,7 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if !isPEMFormat(iss.Spec.CABundle) {
 		caBundle, err := convertToPemFormat(iss.Spec.CABundle)
 		if err != nil {
-			log.Error(err, "failed to parse caBundle in the StepIssuer spec", "namespace", secretNamespaceName.Namespace, "name", secretNamespaceName.Name)
+			log.Error(err, "failed to parse caBundle in the StepIssuer spec", "namespace", req.Namespace, "name", req.Name)
 		}
 		iss.Spec.CABundle = caBundle
 	}
@@ -128,12 +117,8 @@ func validateStepIssuerSpec(s api.StepIssuerSpec) error {
 		return fmt.Errorf("spec.provisioner.name cannot be empty")
 	case s.Provisioner.KeyID == "":
 		return fmt.Errorf("spec.provisioner.kid cannot be empty")
-	case s.Provisioner.PasswordRef.Name == "":
-		return fmt.Errorf("spec.provisioner.passwordRef.name cannot be empty")
-	case s.Provisioner.PasswordRef.Key == "":
-		return fmt.Errorf("spec.provisioner.passwordRef.key cannot be empty")
 	default:
-		return nil
+		return validateProvisionerPasswordSource(s.Provisioner.PasswordRef.Name, s.Provisioner.PasswordRef.Key, s.Provisioner.PasswordEnv, s.Provisioner.PasswordFile)
 	}
 }
 

@@ -200,6 +200,44 @@ status:
 
 Your `StepIssuer` is ready to sign certificates.
 
+#### Providing the provisioner password without a Kubernetes Secret
+
+By default the provisioner password is read from a Kubernetes Secret referenced
+by `provisioner.passwordRef`. If you manage secrets outside of Kubernetes — for
+example with HashiCorp Vault and the Vault Agent injector — you can instead have
+the password read directly from the step-issuer controller's own environment or
+filesystem. Set **exactly one** of the following:
+
+| Field | Source | Typical use |
+|-------|--------|-------------|
+| `provisioner.passwordRef` | A key in a Kubernetes Secret | Default; password stored as a Secret |
+| `provisioner.passwordEnv` | An environment variable in the controller pod | Password injected as an env var |
+| `provisioner.passwordFile` | A file path in the controller pod | Password rendered to a file (e.g. a Vault Agent template) |
+
+`passwordEnv` and `passwordFile` are read from the **step-issuer controller pod**
+(not from the workload requesting a certificate), so the password must be injected
+there — for instance via Vault Agent annotations on the controller Deployment. A
+single trailing newline is trimmed from both, which is convenient for templated
+files. The env var name / file path is configured per issuer, so multiple issuers
+with different passwords are supported, and neither option requires a Kubernetes
+Secret or any extra RBAC.
+
+For example, to read the password from a file that Vault Agent renders into the
+controller pod:
+
+```yaml
+spec:
+  url: $CA_URL
+  caBundle: $CA_ROOT_B64
+  provisioner:
+    name: $CA_PROVISIONER_NAME
+    kid: $CA_PROVISIONER_KID
+    # Read from a file rendered into the controller pod (e.g. by Vault Agent):
+    passwordFile: /vault/secrets/provisioner-password
+    # ...or from an environment variable in the controller pod:
+    # passwordEnv: STEP_PROVISIONER_PASSWORD
+```
+
 ### 4. Create your first `Certificate`
 
 Step Issuer has a controller watching for CertificateRequest resources, when one

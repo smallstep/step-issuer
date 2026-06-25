@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.20.1
   name: stepclusterissuers.certmanager.step.sm
 spec:
   group: certmanager.step.sm
@@ -56,10 +56,29 @@ spec:
                   name:
                     description: Names is the name of the JWK provisioner.
                     type: string
+                  passwordEnv:
+                    description: |-
+                      PasswordEnv is the name of an environment variable, read from the
+                      step-issuer controller's own environment, that holds the provisioner
+                      password. Use this when the password is injected into the controller pod
+                      (for example by Vault Agent) instead of being stored in a Kubernetes
+                      Secret. A trailing newline is trimmed. Exactly one of PasswordRef,
+                      PasswordEnv, or PasswordFile must be set.
+                    type: string
+                  passwordFile:
+                    description: |-
+                      PasswordFile is the path to a file, read from the step-issuer controller's
+                      own filesystem, that holds the provisioner password. Use this when the
+                      password is rendered into the controller pod (for example by a Vault Agent
+                      template) instead of being stored in a Kubernetes Secret. A trailing
+                      newline is trimmed. Exactly one of PasswordRef, PasswordEnv, or
+                      PasswordFile must be set.
+                    type: string
                   passwordRef:
                     description: |-
                       PasswordRef is a reference to a Secret containing the provisioner
-                      password used to decrypt the provisioner private key.
+                      password used to decrypt the provisioner private key. Exactly one of
+                      PasswordRef, PasswordEnv, or PasswordFile must be set.
                     properties:
                       key:
                         description: The key of the secret to select from. Must be
@@ -80,7 +99,6 @@ spec:
                 required:
                 - kid
                 - name
-                - passwordRef
                 type: object
               url:
                 description: URL is the base URL for the step certificates instance.
