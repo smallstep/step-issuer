@@ -38,9 +38,10 @@ type StepIssuerSpec struct {
 	Provisioner StepProvisioner `json:"provisioner"`
 
 	// CABundle is a base64 encoded TLS certificate used to verify connections
-	// to the step certificates server. If not set the system root certificates
-	// are used to validate the TLS connection.
-	CABundle []byte `json:"caBundle"`
+	// to the step certificates server. If not set, the controller's system
+	// trust store is used to validate the TLS connection instead.
+	// +optional
+	CABundle []byte `json:"caBundle,omitempty"`
 }
 
 // StepIssuerStatus defines the observed state of StepIssuer
