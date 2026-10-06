@@ -87,14 +87,40 @@ type StepClusterIssuerSecretKeySelector struct {
 	Key string `json:"key,omitempty"`
 }
 
+// StepClusterIssuerKeySelector contains the reference to a key in a Secret or ConfigMap.
+type StepClusterIssuerKeySelector struct {
+	// The name of the resource to select from.
+	Name string `json:"name"`
+
+	// The namespace of the resource to select from.
+	Namespace string `json:"namespace"`
+
+	// The key of the resource to select from.
+	Key string `json:"key"`
+}
+
 // StepClusterProvisioner contains the configuration used to create step certificate
 // tokens used to grant certificates.
 type StepClusterProvisioner struct {
 	// Names is the name of the JWK provisioner.
 	Name string `json:"name"`
 
-	// KeyID is the kid property of the JWK provisioner.
-	KeyID string `json:"kid"`
+	// KeyID is the kid property of the JWK provisioner. Exactly one of KeyID,
+	// KeyIDSecretRef, or KeyIDConfigMapRef must be set.
+	// +optional
+	KeyID string `json:"kid,omitempty"`
+
+	// KeyIDSecretRef is a reference to a key in a Secret containing the kid of
+	// the JWK provisioner. Exactly one of KeyID, KeyIDSecretRef, or
+	// KeyIDConfigMapRef must be set.
+	// +optional
+	KeyIDSecretRef *StepClusterIssuerKeySelector `json:"kidSecretRef,omitempty"`
+
+	// KeyIDConfigMapRef is a reference to a key in a ConfigMap containing the
+	// kid of the JWK provisioner. Exactly one of KeyID, KeyIDSecretRef, or
+	// KeyIDConfigMapRef must be set.
+	// +optional
+	KeyIDConfigMapRef *StepClusterIssuerKeySelector `json:"kidConfigMapRef,omitempty"`
 
 	// PasswordRef is a reference to a Secret containing the provisioner
 	// password used to decrypt the provisioner private key. Exactly one of
