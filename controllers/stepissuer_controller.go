@@ -41,6 +41,7 @@ type StepIssuerReconciler struct {
 // +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepissuers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=certmanager.step.sm,resources=stepissuers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 // +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;create;update
 
@@ -76,6 +77,21 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, reason, "Failed to retrieve provisioner password: %v", err)
 		return ctrl.Result{}, err
 	}
+
+	// Resolve the provisioner kid from the spec, a Secret, or a ConfigMap.
+	kid, notFound, err := resolveProvisionerKeyID(ctx, r.Client, iss.Spec.Provisioner.KeyID,
+		issuerKeyRef(iss.Spec.Provisioner.KeyIDSecretRef, req.Namespace),
+		issuerKeyRef(iss.Spec.Provisioner.KeyIDConfigMapRef, req.Namespace))
+	if err != nil {
+		log.Error(err, "failed to retrieve provisioner kid")
+		reason := "Error"
+		if notFound {
+			reason = "NotFound"
+		}
+		statusReconciler.UpdateNoError(ctx, api.ConditionFalse, reason, "Failed to retrieve provisioner kid: %v", err)
+		return ctrl.Result{}, err
+	}
+	iss.Spec.Provisioner.KeyID = kid
 
 	//Verify that the CABundle is in x509 PEM format If not then covert it over
 	//to PEM x509 format
@@ -115,9 +131,10 @@ func validateStepIssuerSpec(s api.StepIssuerSpec) error {
 		return fmt.Errorf("spec.caBundle cannot be empty")
 	case s.Provisioner.Name == "":
 		return fmt.Errorf("spec.provisioner.name cannot be empty")
-	case s.Provisioner.KeyID == "":
-		return fmt.Errorf("spec.provisioner.kid cannot be empty")
 	default:
+		if err := validateProvisionerKeyIDSource(s.Provisioner.KeyID, s.Provisioner.KeyIDSecretRef != nil, s.Provisioner.KeyIDConfigMapRef != nil); err != nil {
+			return err
+		}
 		return validateProvisionerPasswordSource(s.Provisioner.PasswordRef.Name, s.Provisioner.PasswordRef.Key, s.Provisioner.PasswordEnv, s.Provisioner.PasswordFile)
 	}
 }
