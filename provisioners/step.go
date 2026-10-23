@@ -3,9 +3,11 @@ package provisioners
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"net/http"
 	"sync"
 
 	certmanager "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
@@ -29,7 +31,7 @@ type Step struct {
 // given issuer.
 func NewFromStepIssuer(iss *api.StepIssuer, password []byte) (*Step, error) {
 	options := []ca.ClientOption{
-		ca.WithCABundle(iss.Spec.CABundle),
+		caClientOption(iss.Spec.CABundle),
 	}
 
 	provisioner, err := ca.NewProvisioner(iss.Spec.Provisioner.Name, iss.Spec.Provisioner.KeyID, iss.Spec.URL, password, options...)
@@ -48,7 +50,7 @@ func NewFromStepIssuer(iss *api.StepIssuer, password []byte) (*Step, error) {
 
 func NewFromStepClusterIssuer(iss *api.StepClusterIssuer, password []byte) (*Step, error) {
 	options := []ca.ClientOption{
-		ca.WithCABundle(iss.Spec.CABundle),
+		caClientOption(iss.Spec.CABundle),
 	}
 
 	provisioner, err := ca.NewProvisioner(iss.Spec.Provisioner.Name, iss.Spec.Provisioner.KeyID, iss.Spec.URL, password, options...)
@@ -63,6 +65,29 @@ func NewFromStepClusterIssuer(iss *api.StepClusterIssuer, password []byte) (*Ste
 	}
 
 	return p, nil
+}
+
+// caClientOption returns the ca.ClientOption used to establish trust with the
+// step certificates server. When caBundle is empty, the returned option
+// configures the client to fall back to the controller's system trust store
+// (the host's/container's root CA certificates) instead of a pinned bundle.
+func caClientOption(caBundle []byte) ca.ClientOption {
+	if len(caBundle) == 0 {
+		return ca.WithTransport(systemTrustStoreTransport())
+	}
+	return ca.WithCABundle(caBundle)
+}
+
+// systemTrustStoreTransport returns an http.Transport whose TLS client
+// config leaves RootCAs unset so that Go falls back to verifying server
+// certificates against the system's trust store.
+func systemTrustStoreTransport() http.RoundTripper {
+	return &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
 }
 
 // Load returns a Step provisioner by NamespacedName.
