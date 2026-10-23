@@ -51,8 +51,50 @@ spec:
                   configuration.
                 properties:
                   kid:
-                    description: KeyID is the kid property of the JWK provisioner.
+                    description: |-
+                      KeyID is the kid property of the JWK provisioner. Exactly one of KeyID,
+                      KeyIDSecretRef, or KeyIDConfigMapRef must be set.
                     type: string
+                  kidConfigMapRef:
+                    description: |-
+                      KeyIDConfigMapRef is a reference to a key in a ConfigMap containing the
+                      kid of the JWK provisioner. Exactly one of KeyID, KeyIDSecretRef, or
+                      KeyIDConfigMapRef must be set.
+                    properties:
+                      key:
+                        description: The key of the resource to select from.
+                        type: string
+                      name:
+                        description: The name of the resource to select from.
+                        type: string
+                      namespace:
+                        description: The namespace of the resource to select from.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
+                  kidSecretRef:
+                    description: |-
+                      KeyIDSecretRef is a reference to a key in a Secret containing the kid of
+                      the JWK provisioner. Exactly one of KeyID, KeyIDSecretRef, or
+                      KeyIDConfigMapRef must be set.
+                    properties:
+                      key:
+                        description: The key of the resource to select from.
+                        type: string
+                      name:
+                        description: The name of the resource to select from.
+                        type: string
+                      namespace:
+                        description: The namespace of the resource to select from.
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
+                    type: object
                   name:
                     description: Names is the name of the JWK provisioner.
                     type: string
@@ -97,7 +139,6 @@ spec:
                     - namespace
                     type: object
                 required:
-                - kid
                 - name
                 type: object
               url:
