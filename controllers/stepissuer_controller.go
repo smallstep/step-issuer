@@ -77,9 +77,13 @@ func (r *StepIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	//Verify that the CABundle is in x509 PEM format If not then covert it over
-	//to PEM x509 format
-	if !isPEMFormat(iss.Spec.CABundle) {
+	// If no CABundle is set, the provisioner falls back to the controller's
+	// system trust store to validate the TLS connection to the step
+	// certificates server. Otherwise, verify that the CABundle is in x509 PEM
+	// format and, if not, convert it over to PEM x509 format.
+	if len(iss.Spec.CABundle) == 0 {
+		log.Info("spec.caBundle not set, falling back to the system trust store to verify the TLS connection to the step certificates server", "namespace", req.Namespace, "name", req.Name)
+	} else if !isPEMFormat(iss.Spec.CABundle) {
 		caBundle, err := convertToPemFormat(iss.Spec.CABundle)
 		if err != nil {
 			log.Error(err, "failed to parse caBundle in the StepIssuer spec", "namespace", req.Namespace, "name", req.Name)
@@ -111,8 +115,6 @@ func validateStepIssuerSpec(s api.StepIssuerSpec) error {
 	switch {
 	case s.URL == "":
 		return fmt.Errorf("spec.url cannot be empty")
-	case len(s.CABundle) == 0:
-		return fmt.Errorf("spec.caBundle cannot be empty")
 	case s.Provisioner.Name == "":
 		return fmt.Errorf("spec.provisioner.name cannot be empty")
 	case s.Provisioner.KeyID == "":

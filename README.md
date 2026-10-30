@@ -163,7 +163,9 @@ metadata:
 spec:
   # The CA URL:
   url: $CA_URL
-  # The base64 encoded version of the CA root certificate in PEM format:
+  # The base64 encoded version of the CA root certificate in PEM format.
+  # Optional: omit this field to trust the controller's system trust store
+  # instead (see "Omitting caBundle" below).
   caBundle: $CA_ROOT_B64
   # The provisioner name, kid, and a reference to the provisioner password secret:
   provisioner:
@@ -175,6 +177,17 @@ spec:
 ---
 EOF
 ```
+
+#### Omitting `caBundle`
+
+`caBundle` is optional. If your step-ca instance is reachable through an
+endpoint whose TLS certificate already chains to a CA trusted by the
+step-issuer controller's system trust store — for example, a publicly trusted
+certificate from a proxy or load balancer in front of step-ca — you can omit
+`caBundle` entirely instead of maintaining a pinned CA PEM bundle in every
+`StepIssuer`/`StepClusterIssuer`. When `caBundle` is not set, the controller
+logs that it is falling back to the system trust store and validates the
+connection to the step certificates server using it.
 
 Finally, we'll apply our configuration:
 

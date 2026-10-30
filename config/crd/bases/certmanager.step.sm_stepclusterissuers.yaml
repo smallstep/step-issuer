@@ -42,8 +42,8 @@ spec:
               caBundle:
                 description: |-
                   CABundle is a base64 encoded TLS certificate used to verify connections
-                  to the step certificates server. If not set the system root certificates
-                  are used to validate the TLS connection.
+                  to the step certificates server. If not set, the controller's system
+                  trust store is used to validate the TLS connection instead.
                 format: byte
                 type: string
               provisioner:
@@ -104,7 +104,6 @@ spec:
                 description: URL is the base URL for the step certificates instance.
                 type: string
             required:
-            - caBundle
             - provisioner
             - url
             type: object
