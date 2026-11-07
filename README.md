@@ -238,6 +238,35 @@ spec:
     # passwordEnv: STEP_PROVISIONER_PASSWORD
 ```
 
+#### Providing the provisioner `kid` from a Secret or ConfigMap
+
+Instead of hardcoding `provisioner.kid` in the resource, the kid can be read from
+a Kubernetes Secret or ConfigMap. Set **exactly one** of:
+
+| Field | Source |
+|-------|--------|
+| `provisioner.kid` | Literal value in the resource |
+| `provisioner.kidSecretRef` | A key in a Kubernetes Secret |
+| `provisioner.kidConfigMapRef` | A key in a Kubernetes ConfigMap |
+
+For a `StepIssuer` the Secret/ConfigMap must be in the issuer's namespace. For a
+`StepClusterIssuer` the reference must also set `namespace`. Surrounding
+whitespace is trimmed. The reference is resolved when the issuer is reconciled,
+so after changing the referenced value, touch the issuer (or restart the
+controller) to pick it up.
+
+```yaml
+spec:
+  provisioner:
+    name: $CA_PROVISIONER_NAME
+    kidConfigMapRef:
+      name: step-provisioner
+      key: kid
+    passwordRef:
+      name: step-certificates-provisioner-password
+      key: password
+```
+
 ### 4. Create your first `Certificate`
 
 Step Issuer has a controller watching for CertificateRequest resources, when one

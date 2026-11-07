@@ -7,18 +7,19 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - ""
-  resources:
+  - configmaps
   - secrets
   verbs:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - cert-manager.io
   resources:
@@ -40,25 +41,6 @@ rules:
   - certmanager.step.sm
   resources:
   - stepclusterissuers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - certmanager.step.sm
-  resources:
-  - stepclusterissuers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - certmanager.step.sm
-  resources:
   - stepissuers
   verbs:
   - create
@@ -71,6 +53,7 @@ rules:
 - apiGroups:
   - certmanager.step.sm
   resources:
+  - stepclusterissuers/status
   - stepissuers/status
   verbs:
   - get
